@@ -1,0 +1,12 @@
+{
+  "name": "verdant",
+  "version": "1.0.0",
+  "description": "VERDANT — low-poly third-person open-world survival MVP (Babylon.js) by Heleo2 Studio",
+  "private": true,
+  "scripts": {
+    "server": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
