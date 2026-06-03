@@ -7,3 +7,7 @@ test_lb.json
 
 # transfer artifacts
 *.bundle
+
+# build artifact
+verdant-webgl.bundle
+*.bundle
