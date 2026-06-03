@@ -4,3 +4,6 @@ node_modules/
 leaderboard.json
 test_lb.json
 *.log
+
+# transfer artifacts
+*.bundle
