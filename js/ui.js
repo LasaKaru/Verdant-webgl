@@ -144,6 +144,7 @@ function bindUI(){
     else if(a==='skills'){ if(typeof initRPG==='function'&&Game.xp==null) initRPG(); openSkills(); }
     else if(a==='codes'){ openCodes(); }
     else if(a==='leaderboard'){ openLeaderboard(); }
+    else if(a==='saves'){ openSaves(); }
     else if(a==='multiplayer') setState('mp');
     else if(a==='howto') setState('howto');
   });
@@ -174,6 +175,7 @@ function bindUI(){
   seg('segInvY','i',i=>{ Game.settings.invertY=(i==='on'); });
   seg('segAuto','a',a=>{ Game.settings.autoSprint=(a==='on'); });
   seg('segMode','m',m=>{ Game.net.mode=m; });
+  seg('segFps','f',f=>{ Game.settings.fps=(f==='on'); });
 
   const sl=(id,fmt,set)=>{ const el=$(id); el.oninput=()=>{ const v=+el.value; set(v); $(id+'Val').textContent=fmt(v); }; };
   sl('sens', v=>(v/100).toFixed(2), v=>Game.settings.sens=v/100);
@@ -192,8 +194,10 @@ function bindUI(){
   if(typeof initCodes==='function') initCodes();
   if(typeof initLeaderboard==='function') initLeaderboard();
   const lbc=$('lbClose'); if(lbc) lbc.onclick=closeLeaderboard;
+  const svc=$('savesClose'); if(svc) svc.onclick=closeSaves;
   const sk=$('skills'); if(sk) sk.addEventListener('click',e=>{ if(e.target.id==='skills') closeSkills(); });
   const lbl=$('leaderboard'); if(lbl) lbl.addEventListener('click',e=>{ if(e.target.id==='leaderboard') closeLeaderboard(); });
+  const sv=$('saves'); if(sv) sv.addEventListener('click',e=>{ if(e.target.id==='saves') closeSaves(); });
   const cs=$('codeSubmit'); if(cs) cs.onclick=submitCode;
   const cClose=$('codeClose'); if(cClose) cClose.onclick=closeCodes;
   $('inv').addEventListener('click',e=>{ if(e.target.id==='inv') toggleInventory(); });

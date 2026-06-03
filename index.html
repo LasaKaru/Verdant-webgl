@@ -265,6 +265,29 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .contractcard .cprog{font-family:'Share Tech Mono';font-size:14px;color:var(--lime-d);}
 .contractcard .creward{font-family:'Oswald';font-weight:700;color:var(--lime-d);font-size:18px;margin-top:4px;}
 .contractcard .caccept{font-family:'Share Tech Mono';font-size:11px;letter-spacing:.18em;color:var(--orange);margin-top:8px;}
+/* save slots */
+.savegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+.savecard{background:rgba(14,31,23,.05);border:2px solid var(--line);border-radius:14px;padding:14px 13px;}
+.savecard.empty{border-style:dashed;}
+.savecard .svtop{display:flex;justify-content:space-between;align-items:baseline;}
+.savecard .svname{font-family:'Oswald';font-weight:700;font-size:16px;color:var(--ink);text-transform:uppercase;}
+.savecard .svdate{font-family:'Share Tech Mono';font-size:10px;color:var(--muted);}
+.savecard .svinfo{font-family:'Share Tech Mono';font-size:12px;color:var(--ink-2);margin:8px 0 12px;}
+.savecard .svinfo b{color:var(--lime-d);}
+.savecard .svbtns{display:flex;flex-wrap:wrap;gap:6px;}
+.savecard .svb{flex:1;min-width:60px;border:0;border-radius:8px;cursor:pointer;padding:7px 4px;font-family:'Oswald';font-weight:600;
+  font-size:11px;letter-spacing:.08em;background:rgba(14,31,23,.08);color:var(--ink-2);transition:.12s;}
+.savecard .svb.load{background:linear-gradient(180deg,var(--lime),var(--lime-d));color:#08160e;}
+.savecard .svb.del{background:rgba(255,77,77,.14);color:var(--danger);}
+.savecard .svb:hover{transform:translateY(-1px);}
+/* fps + photo mode */
+#fpsHud{position:fixed;top:6px;left:10px;z-index:8;display:none;font-family:'Share Tech Mono';font-size:12px;
+  color:#9be35a;text-shadow:0 1px 3px rgba(0,0,0,.8);letter-spacing:.06em;}
+#photoHint{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:8;display:none;
+  font-family:'Share Tech Mono';font-size:12px;letter-spacing:.12em;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9);
+  background:rgba(8,18,12,.55);border-radius:8px;padding:6px 14px;}
+body.photomode #hud{display:none!important;}
+body.photomode #photoHint{display:block;}
 /* leaderboard */
 .lbrow{display:flex;align-items:center;gap:12px;padding:8px 6px;border-bottom:1px solid var(--line);font-family:'Share Tech Mono';font-size:13px;}
 .lbrow:last-child{border-bottom:0;}
@@ -453,6 +476,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <button class="mbtn" data-act="skills">Skills</button>
       <button class="mbtn" data-act="missions">Missions</button>
       <button class="mbtn" data-act="multiplayer">Multiplayer</button>
+      <button class="mbtn" data-act="saves">Profiles</button>
       <button class="mbtn" data-act="leaderboard">Leaderboard</button>
       <button class="mbtn" data-act="codes">Secret Codes</button>
       <button class="mbtn" data-act="howto">How To Play</button>
@@ -493,6 +517,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div class="seg" id="segInvY"><button data-i="off" class="active">OFF</button><button data-i="on">ON</button></div></div>
     <div class="row"><label>Auto-Sprint</label>
       <div class="seg" id="segAuto"><button data-a="off" class="active">OFF</button><button data-a="on">ON</button></div></div>
+    <div class="row"><label>FPS Counter</label>
+      <div class="seg" id="segFps"><button data-f="off" class="active">OFF</button><button data-f="on">ON</button></div></div>
     <div class="row"><label>Weather</label>
       <div class="seg" id="segWeather"><button data-w="clear">CLEAR</button><button data-w="rain">RAIN</button><button data-w="auto" class="active">AUTO</button></div></div>
     <div class="panel-actions">
@@ -612,6 +638,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <h2>Mission Board</h2>
     <div class="contractgrid" id="contractGrid"></div>
     <div class="inv-hint">Accept a contract for a cash reward · <span class="kbd">K</span> to close</div>
+  </div>
+</div>
+
+<!-- ===== SAVE SLOTS ===== -->
+<div id="saves" class="layer center" style="background:rgba(8,18,12,.68);backdrop-filter:blur(4px);" data-screen-label="Profiles">
+  <div class="panel" style="width:min(720px,94vw);">
+    <h2>Save Slots</h2>
+    <div class="savegrid" id="saveGrid"></div>
+    <div class="inv-hint">Your progress (level, perks, achievements, unlocks, missions) — save &amp; load up to 3 profiles.</div>
+    <div class="panel-actions"><button class="pbtn" id="savesClose">Done</button></div>
   </div>
 </div>
 
@@ -768,6 +804,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   <div id="killfeed"></div>
   <div class="respawnbanner" id="respawnBanner"><div class="rl1"></div><div class="rl2"></div></div>
 </div>
+<div id="fpsHud"></div>
+<div id="photoHint">📷 PHOTO MODE · WASD fly · SHIFT fast · SPACE/CTRL up·down · F2 exit</div>
 <div class="hitflash" id="hitflash"></div>
 <div class="dmgvig" id="dmgvig"></div>
 <div class="scope" id="scope"></div>
@@ -783,6 +821,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <script src="js/pvp.js"></script>
 <script src="js/coop.js"></script>
 <script src="js/leaderboard.js"></script>
+<script src="js/saves.js"></script>
 <script src="js/chat.js"></script>
 <script src="js/vehicles.js"></script>
 <script src="js/city.js"></script>

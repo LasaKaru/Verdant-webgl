@@ -34,7 +34,7 @@ function switchWeapon(i){
 
 function tryShoot(now){
   const w=currentW();
-  if(reloading || Game.pvpDead) return;
+  if(reloading || Game.pvpDead || Game.photo) return;
   if(now-lastShot < w.rof) return;
   if(Game.cheats.infAmmo){ w.ammo=w.maxMag; w.reserve=Math.max(w.reserve,w.maxMag); }
   if(w.ammo<=0){ if(w.reserve>0) reload(); else toast('OUT OF AMMO'); return; }

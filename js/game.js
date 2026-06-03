@@ -3,6 +3,32 @@
 
 const DAY_LENGTH = 150;   // seconds for a full 24h cycle
 
+/* ------------------------- photo mode (free-fly camera) ------------------------- */
+function togglePhoto(){
+  Game.photo=!Game.photo;
+  document.body.classList.toggle('photomode',Game.photo);
+  if(Game.photo){
+    Game.photoYaw=Game.yaw; Game.photoPitch=Game.pitch; Game.mouseDown=false; Game.aiming=false;
+    document.exitPointerLock&&document.exitPointerLock();
+    toast('PHOTO MODE — WASD fly · SHIFT fast · SPACE/CTRL up·down · F2 exit');
+  } else { toast('PHOTO MODE OFF'); }
+}
+function updatePhoto(dt){
+  const k=Game.keys, cam=Game.camera;
+  const cp=Math.cos(Game.photoPitch);
+  const fwd={ x:Math.sin(Game.photoYaw)*cp, y:Math.sin(Game.photoPitch), z:Math.cos(Game.photoYaw)*cp };
+  const right={ x:Math.cos(Game.photoYaw), y:0, z:-Math.sin(Game.photoYaw) };
+  const sp=(k['shift']?46:18)*dt;
+  const p=cam.position;
+  if(k['w']){ p.x+=fwd.x*sp; p.y+=fwd.y*sp; p.z+=fwd.z*sp; }
+  if(k['s']){ p.x-=fwd.x*sp; p.y-=fwd.y*sp; p.z-=fwd.z*sp; }
+  if(k['d']){ p.x+=right.x*sp; p.z+=right.z*sp; }
+  if(k['a']){ p.x-=right.x*sp; p.z-=right.z*sp; }
+  if(k[' ']) p.y+=sp;
+  if(k['control']||k['c']) p.y-=sp;
+  cam.setTarget(new BABYLON.Vector3(p.x+fwd.x,p.y+fwd.y,p.z+fwd.z));
+}
+
 /* render distance — maps the 0..1 setting to camera far-plane + fog */
 function applyRenderDist(){
   const v=Game.settings.renderDist;
@@ -67,13 +93,19 @@ async function boot(){
   }
 
   let last=performance.now();
+  let _fpsT=0,_fpsN=0,_fpsAcc=0;
   engine.runRenderLoop(()=>{
     const now=performance.now(); const dt=Math.min(0.05,(now-last)/1000); last=now;
     Game.camera.fov = Game.aiming ? Game.settings.fov*(currentW().zoom?0.45:0.8) : Game.settings.fov;
-    if(Game.state==='playing'){ updateGame(dt,now); }
-    if(Game.settings.cycle && (Game.state==='playing')) { Game.time=(Game.time+dt/DAY_LENGTH)%1; }
+    if(Game.photo){ updatePhoto(dt); }
+    else if(Game.state==='playing'){ updateGame(dt,now); }
+    if(Game.settings.cycle && (Game.state==='playing'||Game.photo)) { Game.time=(Game.time+dt/DAY_LENGTH)%1; }
     updateSky();
     scene.render();
+    // fps counter
+    _fpsAcc+=dt; _fpsN++; _fpsT+=dt;
+    if(_fpsT>=0.25){ const el=$('fpsHud'); if(el){ el.style.display=Game.settings.fps?'block':'none';
+      if(Game.settings.fps) el.textContent=Math.round(_fpsN/_fpsAcc)+' FPS'; } _fpsT=0;_fpsN=0;_fpsAcc=0; }
   });
   window.addEventListener('resize',()=>engine.resize());
   setTimeout(nextStep,400);
@@ -334,6 +366,8 @@ function bindInput(){
     if(Game.chat&&Game.chat.typing) return;          // typing in chat → ignore game input
     Game.keys[key]=true;
     if(Game.state==='playing'){
+      if(key==='f2'){ e.preventDefault(); togglePhoto(); return; }
+      if(Game.photo) return;   // photo mode: ignore game shortcuts (movement still read from Game.keys)
       if(key==='enter'||key==='t'){ e.preventDefault(); if(typeof openChat==='function') openChat(); return; }
       if(key>='1'&&key<='9'){ switchWeapon(+key-1); }
       if(key==='r') reload();
@@ -360,7 +394,7 @@ function bindInput(){
   // We do NOT auto-grab pointer lock (it hid the cursor and ate clicks).
   // Press L to toggle classic locked mouselook if you want it.
   window.addEventListener('mousedown',e=>{
-    if(Game.state!=='playing'||overlayOpen()) return;
+    if(Game.state!=='playing'||overlayOpen()||Game.photo) return;
     if(e.button===0){ Game.mouseDown=true; if(!Game.inVehicle && !currentW().auto) tryShoot(performance.now()); }
     if(e.button===2){ Game.aiming=true; }
   });
@@ -369,6 +403,7 @@ function bindInput(){
   window.addEventListener('wheel',e=>{ if(Game.state==='playing'){ Game.camDist=clamp(Game.camDist+Math.sign(e.deltaY)*0.6,4,12); } },{passive:true});
   document.addEventListener('mousemove',e=>{
     if(Game.state!=='playing'||overlayOpen()) return;
+    if(Game.photo){ Game.photoYaw+=e.movementX*0.0026; Game.photoPitch=clamp(Game.photoPitch - e.movementY*0.0026, -1.4, 1.4); return; }
     const canvas=$('renderCanvas');
     if(document.pointerLockElement===canvas){
       // Pointer locked → classic FPS mouselook, crosshair stays centered.

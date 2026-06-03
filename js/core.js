@@ -33,7 +33,7 @@ function onRoad(x,z){ for(const r of ROADS){ if(distToSeg(x,z,r.x1,r.z1,r.x2,r.z
 const Game = {
   state: 'loading',
   settings: { quality:'med', shadows:true, cycle:true, sens:1.2, volume:0.55, fov:74*Math.PI/180, density:140, weatherMode:'auto', healthbars:true,
-              difficulty:'normal', renderDist:0.55, invertY:false, autoSprint:false },
+              difficulty:'normal', renderDist:0.55, invertY:false, autoSprint:false, fps:false },
   scene:null, engine:null, camera:null, sun:null, hemi:null, shadowGen:null,
   player:null, playerRoot:null, playerData:null, charIndex:0,
   enemies:[], items:[], projectiles:[], grenades:[], decals:[], houses:[], vehicles:[], villagers:[],
@@ -57,6 +57,7 @@ const Game = {
   missions:null, missionStats:{ kills:0, bosses:0, cashEarned:0, waves:0, drives:0, nadeKills:0 },
   xp:null, level:1, skillPoints:0, perks:{}, maxHP:100, achievements:null, skillsOpen:false,
   pvpDead:false, lbOpen:false, lbTab:'survival', lbGlobal:null, coopEnemies:{},
+  savesOpen:false, photo:false, photoYaw:0, photoPitch:0.3,
 };
 const DIFF={ easy:{spawn:0.7, dmg:0.55, cap:7}, normal:{spawn:1, dmg:1, cap:9}, hard:{spawn:1.4, dmg:1.7, cap:13} };
 function diff(){ return DIFF[Game.settings.difficulty]||DIFF.normal; }
@@ -67,7 +68,7 @@ const show = id => $(id).classList.add('show');
 const hide = id => $(id).classList.remove('show');
 function setState(s){
   Game.state = s;
-  ['loader','menu','settings','mp','howto','pause','over','inv','shop','map','garage','contracts','customize','missions','codes','skills','leaderboard'].forEach(hide);
+  ['loader','menu','settings','mp','howto','pause','over','inv','shop','map','garage','contracts','customize','missions','codes','skills','leaderboard','saves'].forEach(hide);
   $('hud').classList.remove('show');
   if(s==='menu'){ show('menu'); if(typeof renderMenuStats==='function') renderMenuStats(); }
   else if(s==='settings') show('settings');
