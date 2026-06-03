@@ -121,10 +121,10 @@ function updateGame(dt,now){
   const fwd={x:Math.sin(Game.yaw),z:Math.cos(Game.yaw)};
   const right={x:Math.cos(Game.yaw),z:-Math.sin(Game.yaw)};
   let mx=0,mz=0;
-  if(k['w']){mx+=fwd.x;mz+=fwd.z;} if(k['s']){mx-=fwd.x;mz-=fwd.z;}
-  if(k['d']){mx+=right.x;mz+=right.z;} if(k['a']){mx-=right.x;mz-=right.z;}
+  if(held('forward')){mx+=fwd.x;mz+=fwd.z;} if(held('back')){mx-=fwd.x;mz-=fwd.z;}
+  if(held('right')){mx+=right.x;mz+=right.z;} if(held('left')){mx-=right.x;mz-=right.z;}
   const len=Math.hypot(mx,mz), moving=len>0.01;
-  const wantSprint=Game.settings.autoSprint?moving:k['shift'];
+  const wantSprint=Game.settings.autoSprint?moving:held('sprint');
   const sprinting=wantSprint&&Game.playerData.stamina>0&&moving&&!Game.crouching;
   let speed=6.2*(sprinting?1.7*((typeof perkSprintMult==='function')?perkSprintMult():1):1)*(Game.aiming?0.5:1)*(Game.crouching?0.5:1);
   if(moving){ mx/=len; mz/=len; }
@@ -140,7 +140,7 @@ function updateGame(dt,now){
   // vertical — glue to the terrain surface so the character never sinks
   // on slopes; gravity only applies while airborne (jumping / falling).
   Game.vy-=24*dt;
-  if(Game.grounded && k[' ']){ Game.vy=9.2; Game.grounded=false; sfx('jump'); }
+  if(Game.grounded && held('jump')){ Game.vy=9.2; Game.grounded=false; sfx('jump'); }
   p.position.y+=Game.vy*dt;
   const gy=heightAt(p.position.x,p.position.z);
   if(p.position.y<=gy+0.06){          // on or under the surface → stand on it
@@ -250,7 +250,7 @@ function updateGame(dt,now){
   for(const it of [...Game.items]){
     it.mesh.rotation.y+=dt*2; it.mesh.position.y=it.baseY+Math.sin(now*0.004)*0.12;
     const dd=BABYLON.Vector3.Distance(p.position,it.mesh.position);
-    if(dd<2.4 && k['e']){
+    if(dd<2.4 && held('interact')){
       const t=it.type;
       if(t==='armor'){ Game.playerData.armor=Math.min(100,Game.playerData.armor+50); refreshArmor(); }
       else addToInventory(t,1);
@@ -370,19 +370,20 @@ function bindInput(){
       if(Game.photo) return;   // photo mode: ignore game shortcuts (movement still read from Game.keys)
       if(key==='enter'||key==='t'){ e.preventDefault(); if(typeof openChat==='function') openChat(); return; }
       if(key>='1'&&key<='9'){ switchWeapon(+key-1); }
-      if(key==='r') reload();
-      if(key==='g') throwGrenade();
-      if(key==='f') toggleVehicle();
-      if(key==='c'){ Game.crouching=!Game.crouching; toast(Game.crouching?'CROUCHED':'STANDING'); }
-      if(key==='m'){ e.preventDefault(); toggleMap(); }
-      if(key==='b'){ toggleShop(); }
-      if(key==='v'){ toggleGarage(); }
-      if(key==='k'){ toggleContracts(); }
-      if(key==='j'){ toggleMissions(); }
-      if(key==='o'){ toggleSkills(); }
-      if(key==='p'){ openCodes(); }
-      if(key==='l'){ toggleLook(); }
-      if(key==='tab'){ e.preventDefault(); toggleInventory(); }
+      const act=actionForKey(key);
+      if(act==='reload') reload();
+      else if(act==='grenade') throwGrenade();
+      else if(act==='vehicle') toggleVehicle();
+      else if(act==='crouch'){ Game.crouching=!Game.crouching; toast(Game.crouching?'CROUCHED':'STANDING'); }
+      else if(act==='map'){ e.preventDefault(); toggleMap(); }
+      else if(act==='shop'){ toggleShop(); }
+      else if(act==='garage'){ toggleGarage(); }
+      else if(act==='contracts'){ toggleContracts(); }
+      else if(act==='missions'){ toggleMissions(); }
+      else if(act==='skills'){ toggleSkills(); }
+      else if(act==='codes'){ openCodes(); }
+      else if(act==='look'){ toggleLook(); }
+      else if(act==='inventory'){ e.preventDefault(); toggleInventory(); }
       if(key==='escape'){ if(Game.mapOpen){ closeMap(); } else if(Game.shopOpen){ closeShop(); } else if(Game.garageOpen){ closeGarage(); } else if(Game.contractsOpen){ closeContracts(); } else if(Game.missionsOpen){ closeMissions(); } else if(Game.codesOpen){ closeCodes(); } else if(Game.skillsOpen){ closeSkills(); } else pauseGame(); }
     } else if(Game.state==='paused'&&key==='escape') resumeGame();
     if(key===' '||key==='tab') e.preventDefault();

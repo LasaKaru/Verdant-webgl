@@ -65,12 +65,12 @@ function updateVehicle(dt,now){
   const v=Game.inVehicle; if(!v) return false;
   const k=Game.keys;
   let accel=0;
-  if(k['w']) accel=26; if(k['s']) accel=-18;
+  if(held('forward')) accel=26; if(held('back')) accel=-18;
   v.speed += accel*dt; v.speed *= 0.97;
   v.speed = clamp(v.speed,-13,30);
   if(Math.abs(v.speed)<0.05 && !accel) v.speed=0;
   // steering scales with speed
-  let steerInput=0; if(k['a']) steerInput=-1; if(k['d']) steerInput=1;
+  let steerInput=0; if(held('left')) steerInput=-1; if(held('right')) steerInput=1;
   v.steer = lerp(v.steer, steerInput*0.5, 0.2);
   v.heading += steerInput * dt * 1.7 * clamp(Math.abs(v.speed)/6,0,1) * (v.speed>=0?1:-1);
   const fx=Math.sin(v.heading), fz=Math.cos(v.heading);

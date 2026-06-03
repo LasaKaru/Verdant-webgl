@@ -265,6 +265,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .contractcard .cprog{font-family:'Share Tech Mono';font-size:14px;color:var(--lime-d);}
 .contractcard .creward{font-family:'Oswald';font-weight:700;color:var(--lime-d);font-size:18px;margin-top:4px;}
 .contractcard .caccept{font-family:'Share Tech Mono';font-size:11px;letter-spacing:.18em;color:var(--orange);margin-top:8px;}
+/* keybinds */
+.keybindgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:14px;}
+.kbrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line);}
+.kbrow .kblabel{font-size:13px;color:var(--ink-2);font-weight:600;letter-spacing:.02em;}
+.kbrow .kbkey{min-width:74px;border:1px solid var(--line);border-radius:8px;background:rgba(14,31,23,.06);cursor:pointer;
+  font-family:'Share Tech Mono';font-size:12px;font-weight:700;color:var(--ink);padding:6px 10px;transition:.12s;}
+.kbrow .kbkey:hover{border-color:var(--lime-d);background:rgba(134,224,74,.12);}
+.kbrow .kbkey.wait{border-color:var(--orange);color:var(--orange);background:rgba(255,159,62,.14);}
 /* save slots */
 .savegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
 .savecard{background:rgba(14,31,23,.05);border:2px solid var(--line);border-radius:14px;padding:14px 13px;}
@@ -522,6 +530,7 @@ body.photomode #photoHint{display:block;}
     <div class="row"><label>Weather</label>
       <div class="seg" id="segWeather"><button data-w="clear">CLEAR</button><button data-w="rain">RAIN</button><button data-w="auto" class="active">AUTO</button></div></div>
     <div class="panel-actions">
+      <button class="pbtn ghost" id="setControls">Controls</button>
       <button class="pbtn" id="setBack">Back</button>
     </div>
   </div>
@@ -638,6 +647,19 @@ body.photomode #photoHint{display:block;}
     <h2>Mission Board</h2>
     <div class="contractgrid" id="contractGrid"></div>
     <div class="inv-hint">Accept a contract for a cash reward · <span class="kbd">K</span> to close</div>
+  </div>
+</div>
+
+<!-- ===== KEYBINDS / CONTROLS ===== -->
+<div id="keybinds" class="layer center" style="background:rgba(8,18,12,.7);backdrop-filter:blur(4px);" data-screen-label="Controls">
+  <div class="panel" style="width:min(620px,94vw);max-height:90vh;overflow-y:auto;">
+    <h2>Controls</h2>
+    <div class="keybindgrid" id="keybindGrid"></div>
+    <div class="inv-hint">Click a key to rebind, then press the new key (ESC cancels). Movement, weapons (1-9), chat &amp; ESC stay fixed.</div>
+    <div class="panel-actions">
+      <button class="pbtn ghost" id="kbReset">Reset Defaults</button>
+      <button class="pbtn" id="kbClose">Done</button>
+    </div>
   </div>
 </div>
 
@@ -822,6 +844,7 @@ body.photomode #photoHint{display:block;}
 <script src="js/coop.js"></script>
 <script src="js/leaderboard.js"></script>
 <script src="js/saves.js"></script>
+<script src="js/keybinds.js"></script>
 <script src="js/chat.js"></script>
 <script src="js/vehicles.js"></script>
 <script src="js/city.js"></script>

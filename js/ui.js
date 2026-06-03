@@ -193,6 +193,11 @@ function bindUI(){
   if(typeof initRPG==='function') initRPG();
   if(typeof initCodes==='function') initCodes();
   if(typeof initLeaderboard==='function') initLeaderboard();
+  if(typeof initKeybinds==='function') initKeybinds();
+  const setCtl=$('setControls'); if(setCtl) setCtl.onclick=openKeybinds;
+  const kbClose=$('kbClose'); if(kbClose) kbClose.onclick=closeKeybinds;
+  const kbReset=$('kbReset'); if(kbReset) kbReset.onclick=resetBinds;
+  const kbl=$('keybinds'); if(kbl) kbl.addEventListener('click',e=>{ if(e.target.id==='keybinds') closeKeybinds(); });
   const lbc=$('lbClose'); if(lbc) lbc.onclick=closeLeaderboard;
   const svc=$('savesClose'); if(svc) svc.onclick=closeSaves;
   const sk=$('skills'); if(sk) sk.addEventListener('click',e=>{ if(e.target.id==='skills') closeSkills(); });
