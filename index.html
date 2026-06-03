@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VERDANT // Heleo2 Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<style>
+:root{
+  --sky:#7ec8ff;
+  --lime:#86e04a;
+  --lime-d:#4fb43a;
+  --orange:#ff9f3e;
+  --coral:#ff6b5e;
+  --gold:#ffd23f;
+  --sea:#3fb0c9;
+  --ink:#0e1f17;
+  --ink-2:#1c3326;
+  --paper:#f3f7ee;
+  --muted:#6f8475;
+  --danger:#ff4d4d;
+  --glass:rgba(243,247,238,.86);
+  --glass-d:rgba(14,31,23,.78);
+  --line:rgba(14,31,23,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;background:#0b1410;color:var(--ink);
+  font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none;}
+#renderCanvas{width:100%;height:100%;display:block;touch-action:none;outline:none;cursor:none;}
+.mono{font-family:'Share Tech Mono',monospace;}
+.osw{font-family:'Oswald',sans-serif;}
+
+/* ---------- generic overlay ---------- */
+.layer{position:fixed;inset:0;z-index:10;display:none;}
+.layer.show{display:flex;}
+.center{align-items:center;justify-content:center;flex-direction:column;}
+.skybg{background:
+  radial-gradient(120% 90% at 50% -10%, #bfeaff 0%, #8ed3ff 35%, #6cbef2 60%, #4f9fd6 100%);}
+.skybg:before{content:'';position:absolute;left:0;right:0;bottom:0;height:42%;
+  background:linear-gradient(180deg, transparent, #4fb43a 60%, #3a9430 100%);
+  clip-path:polygon(0 55%,9% 38%,18% 50%,27% 30%,38% 48%,49% 26%,60% 46%,71% 32%,82% 50%,92% 36%,100% 52%,100% 100%,0 100%);
+  opacity:.92;}
+.skybg:after{content:'';position:absolute;left:0;right:0;bottom:0;height:30%;
+  background:linear-gradient(180deg, transparent, #2f7d2a 70%);
+  clip-path:polygon(0 70%,12% 52%,24% 66%,36% 48%,50% 66%,63% 50%,76% 66%,88% 52%,100% 68%,100% 100%,0 100%);
+  opacity:.8;}
+
+/* ---------- loading / studio ---------- */
+#loader{z-index:60;}
+.studio{display:flex;flex-direction:column;align-items:center;gap:24px;position:relative;z-index:2;}
+.studio-mark{position:relative;width:128px;height:128px;}
+.studio-mark svg{width:100%;height:100%;filter:drop-shadow(0 10px 22px rgba(14,31,23,.28));}
+.studio-mark .ring{transform-origin:64px 64px;animation:spin 8s linear infinite;}
+.studio-mark .ring2{transform-origin:64px 64px;animation:spin 5s linear infinite reverse;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.powered{font-size:11px;letter-spacing:.5em;color:rgba(14,31,23,.55);text-transform:uppercase;font-weight:600;}
+.studio-name{font-family:'Oswald';font-size:34px;letter-spacing:.18em;font-weight:700;color:var(--ink);text-transform:uppercase;}
+.studio-name b{color:var(--lime-d);}
+.bar{width:min(440px,72vw);height:7px;background:rgba(14,31,23,.14);border-radius:99px;overflow:hidden;}
+.bar > i{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,var(--lime),var(--gold),var(--orange));transition:width .25s ease;}
+#loadPct{font-family:'Share Tech Mono';font-size:12px;color:rgba(14,31,23,.6);letter-spacing:.2em;}
+#loadTask{font-family:'Share Tech Mono';font-size:11px;color:var(--lime-d);min-height:14px;letter-spacing:.14em;font-weight:600;}
+
+/* ---------- main menu ---------- */
+#menu .wrap{position:relative;text-align:center;z-index:3;display:flex;flex-direction:column;align-items:center;}
+.kicker{font-family:'Share Tech Mono';font-size:12px;letter-spacing:.5em;color:rgba(14,31,23,.6);text-transform:uppercase;margin-bottom:6px;}
+.title{font-family:'Oswald';font-size:clamp(64px,15vw,184px);font-weight:700;letter-spacing:.02em;line-height:.84;
+  color:var(--ink);text-shadow:0 14px 0 rgba(79,180,58,.28), 0 18px 30px rgba(14,31,23,.25);}
+.subtitle{font-family:'Share Tech Mono';color:rgba(14,31,23,.6);letter-spacing:.36em;
+  font-size:12px;margin-top:14px;text-transform:uppercase;}
+.menu-btns{margin-top:42px;display:flex;flex-direction:column;gap:13px;align-items:center;}
+.mbtn{position:relative;width:300px;padding:16px 0;border:0;border-radius:14px;cursor:pointer;
+  font-family:'Oswald';font-weight:600;font-size:17px;letter-spacing:.22em;text-transform:uppercase;
+  color:#08160e;background:var(--paper);box-shadow:0 6px 0 rgba(14,31,23,.22), 0 10px 22px rgba(14,31,23,.18);
+  transition:transform .12s ease, box-shadow .12s ease, background .15s;}
+.mbtn:hover{transform:translateY(-2px);box-shadow:0 9px 0 rgba(14,31,23,.22), 0 14px 26px rgba(14,31,23,.22);}
+.mbtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(14,31,23,.22);}
+.mbtn.primary{background:linear-gradient(180deg,var(--lime),var(--lime-d));color:#08160e;
+  box-shadow:0 6px 0 #2f7d2a, 0 12px 26px rgba(47,125,42,.45);}
+.mbtn.primary:hover{box-shadow:0 9px 0 #2f7d2a, 0 16px 30px rgba(47,125,42,.5);}
+.mbtn.primary:active{box-shadow:0 3px 0 #2f7d2a;}
+.footer-note{position:absolute;bottom:18px;width:100%;text-align:center;color:rgba(14,31,23,.5);
+  font-family:'Share Tech Mono';font-size:11px;letter-spacing:.22em;z-index:3;}
+.char-pick{display:flex;gap:14px;margin-top:30px;z-index:3;}
+.char-chip{width:64px;height:64px;border-radius:16px;border:3px solid rgba(255,255,255,.7);cursor:pointer;
+  box-shadow:0 6px 14px rgba(14,31,23,.22);transition:transform .12s, border-color .12s;position:relative;}
+.char-chip:hover{transform:translateY(-3px) scale(1.04);}
+.char-chip.sel{border-color:#fff;transform:translateY(-3px) scale(1.08);box-shadow:0 10px 20px rgba(14,31,23,.3);}
+.char-chip.sel:after{content:'✓';position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;
+  background:var(--lime-d);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+
+/* ---------- panels ---------- */
+.panel{background:var(--glass);border-radius:22px;backdrop-filter:blur(12px);
+  width:min(580px,92vw);padding:32px 36px;box-shadow:0 24px 60px rgba(14,31,23,.4);border:1px solid rgba(255,255,255,.5);}
+.panel h2{font-family:'Oswald';font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:26px;margin-bottom:22px;
+  color:var(--ink);display:flex;align-items:center;gap:14px;}
+.panel h2:after{content:'';flex:1;height:3px;border-radius:9px;background:linear-gradient(90deg,var(--lime),transparent);}
+.row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 0;border-bottom:1px solid var(--line);}
+.row:last-of-type{border-bottom:0;}
+.row label{font-size:14px;letter-spacing:.04em;font-weight:600;color:var(--ink-2);text-transform:uppercase;}
+.row .val{font-family:'Share Tech Mono';color:var(--lime-d);font-size:14px;min-width:46px;text-align:right;font-weight:700;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:210px;height:6px;background:rgba(14,31,23,.14);border-radius:9px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--lime-d);cursor:pointer;box-shadow:0 2px 6px rgba(14,31,23,.35);border:2px solid #fff;}
+.seg{display:flex;gap:4px;background:rgba(14,31,23,.07);padding:4px;border-radius:11px;}
+.seg button{background:transparent;border:0;color:var(--muted);padding:8px 16px;cursor:pointer;border-radius:8px;
+  font-family:'Outfit';font-weight:600;font-size:13px;letter-spacing:.06em;transition:.15s;}
+.seg button.active{background:var(--lime-d);color:#fff;box-shadow:0 3px 8px rgba(47,125,42,.4);}
+.panel-actions{display:flex;gap:12px;margin-top:26px;}
+.pbtn{flex:1;padding:14px 0;border:0;border-radius:12px;cursor:pointer;letter-spacing:.16em;text-transform:uppercase;
+  font-family:'Oswald';font-weight:600;font-size:15px;background:linear-gradient(180deg,var(--lime),var(--lime-d));color:#08160e;
+  box-shadow:0 5px 0 #2f7d2a;transition:transform .1s, box-shadow .1s;}
+.pbtn:hover{transform:translateY(-1px);}
+.pbtn:active{transform:translateY(4px);box-shadow:0 1px 0 #2f7d2a;}
+.pbtn.ghost{background:rgba(14,31,23,.06);color:var(--ink-2);box-shadow:0 5px 0 rgba(14,31,23,.16);}
+.pin{flex:1;background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:10px;color:var(--ink);
+  padding:11px 13px;font-size:14px;font-family:'Share Tech Mono';}
+.helptxt{line-height:1.85;font-size:14px;color:var(--ink-2);}
+.kbd{display:inline-block;background:var(--ink);color:var(--paper);border-radius:6px;padding:2px 9px;
+  font-family:'Share Tech Mono';font-size:12px;margin:0 1px;box-shadow:0 2px 0 rgba(0,0,0,.3);}
+
+/* ---------- HUD ---------- */
+#hud{z-index:5;pointer-events:none;}
+#hud.show{display:block;}
+.crosshair{position:absolute;top:50%;left:50%;width:26px;height:26px;transform:translate(-50%,-50%);}
+.crosshair:before,.crosshair:after{content:'';position:absolute;background:#fff;box-shadow:0 0 4px rgba(0,0,0,.6);border-radius:2px;}
+.crosshair:before{left:50%;top:0;width:3px;height:8px;transform:translateX(-50%);box-shadow:0 0 4px rgba(0,0,0,.6);}
+.crosshair:after{top:50%;left:0;height:3px;width:8px;transform:translateY(-50%);}
+.crosshair i{position:absolute;top:50%;left:50%;width:3px;height:8px;background:#fff;transform:translate(-50%,-50%) rotate(90deg);border-radius:2px;}
+.crosshair.hot:before,.crosshair.hot:after,.crosshair.hot i{background:#ff3b3b;box-shadow:0 0 6px rgba(255,40,40,.9);}
+.crosshair.hot{transform:translate(-50%,-50%) scale(1.35);}
+.ch2{position:absolute;top:50%;left:50%;width:26px;height:26px;transform:translate(-50%,-50%);}
+.ch2 b{position:absolute;width:3px;height:8px;background:#fff;border-radius:2px;box-shadow:0 0 4px rgba(0,0,0,.6);}
+.ch2 b:nth-child(1){left:50%;top:0;transform:translateX(-50%);}
+.ch2 b:nth-child(2){left:50%;bottom:0;transform:translateX(-50%);}
+.ch2 b:nth-child(3){top:50%;left:0;width:8px;height:3px;transform:translateY(-50%);}
+.ch2 b:nth-child(4){top:50%;right:0;width:8px;height:3px;transform:translateY(-50%);}
+
+/* bottom-left vitals */
+.vitals{position:absolute;bottom:24px;left:26px;display:flex;flex-direction:column;gap:9px;}
+.vbar{display:flex;align-items:center;gap:10px;}
+.vbar .ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;color:#fff;font-family:'Oswald';box-shadow:0 4px 10px rgba(0,0,0,.3);}
+.vbar .track{width:210px;height:14px;background:rgba(0,0,0,.45);border-radius:8px;overflow:hidden;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.18);}
+.vbar .track > i{display:block;height:100%;border-radius:8px;transition:width .2s;}
+#hpFill{background:linear-gradient(90deg,#ff5a52,#ff9f3e);}
+#spFill{background:linear-gradient(90deg,#3fb0c9,#86e04a);}
+#arFill{background:linear-gradient(90deg,#7ec8ff,#cfeaff);}
+
+/* bottom-right weapon */
+.wbox{position:absolute;bottom:22px;right:28px;text-align:right;color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,.7);}
+.wbox .wname{font-family:'Oswald';font-size:15px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:2px;}
+.wbox .ammo{font-family:'Share Tech Mono';}
+.wbox .big{font-size:54px;line-height:.9;font-weight:700;}
+.wbox .small{font-size:20px;opacity:.7;}
+.wbox .grenade{font-family:'Share Tech Mono';font-size:13px;color:var(--lime);margin-top:4px;letter-spacing:.1em;}
+
+/* top-right minimap + wave/score */
+.topright{position:absolute;top:22px;right:24px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.scoreboard{text-align:right;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7);font-family:'Share Tech Mono';}
+.scoreboard .wave{font-size:13px;letter-spacing:.24em;color:var(--gold);text-transform:uppercase;}
+.scoreboard .score{font-family:'Oswald';font-size:36px;font-weight:700;line-height:1;}
+.scoreboard .money{font-family:'Share Tech Mono';font-size:18px;color:var(--lime);margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.6);}
+.mapwrap{position:relative;width:180px;height:180px;border-radius:50%;overflow:hidden;
+  border:3px solid rgba(255,255,255,.85);box-shadow:0 8px 22px rgba(0,0,0,.45);}
+#minimap{width:100%;height:100%;display:block;}
+.compass{position:absolute;top:-2px;left:50%;transform:translateX(-50%);background:var(--coral);color:#fff;
+  font-family:'Oswald';font-weight:700;font-size:11px;padding:2px 8px;border-radius:0 0 7px 7px;letter-spacing:.1em;z-index:2;}
+.clock{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.5);color:#fff;
+  font-family:'Share Tech Mono';font-size:10px;padding:1px 7px;border-radius:7px;letter-spacing:.1em;}
+
+/* top-left objective */
+.objective{position:absolute;top:22px;left:26px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7);}
+.objective .lab{font-family:'Share Tech Mono';font-size:11px;letter-spacing:.24em;color:var(--gold);text-transform:uppercase;}
+.objective .txt{font-family:'Oswald';font-size:19px;font-weight:500;white-space:nowrap;}
+.objective .enemies{font-family:'Share Tech Mono';font-size:12px;color:rgba(255,255,255,.85);margin-top:5px;letter-spacing:.1em;}
+.objective .net{font-family:'Share Tech Mono';font-size:11px;margin-top:6px;letter-spacing:.12em;}
+.net-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#88998f;margin-right:6px;vertical-align:middle;}
+.net-dot.on{background:var(--lime);box-shadow:0 0 8px var(--lime);}
+
+/* weapon wheel (bottom center quick slots) */
+.qslots{position:absolute;bottom:96px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.qslot{width:50px;height:50px;border-radius:12px;background:rgba(0,0,0,.42);border:2px solid rgba(255,255,255,.16);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;position:relative;
+  font-family:'Oswald';transition:.12s;}
+.qslot .qn{position:absolute;top:2px;left:5px;font-family:'Share Tech Mono';font-size:9px;opacity:.6;}
+.qslot .qi{font-size:20px;line-height:1;}
+.qslot .ql{font-size:8px;letter-spacing:.06em;opacity:.8;margin-top:1px;}
+.qslot.on{border-color:var(--gold);background:rgba(255,210,63,.22);box-shadow:0 0 14px rgba(255,210,63,.4);}
+.qslot.dim{opacity:.4;}
+
+.toast{position:absolute;top:24%;left:50%;transform:translate(-50%,-10px);background:rgba(14,31,23,.82);
+  border:1.5px solid rgba(134,224,74,.5);border-radius:10px;padding:9px 18px;font-family:'Oswald';font-size:16px;
+  letter-spacing:.08em;color:#fff;opacity:0;transition:.3s;white-space:nowrap;text-transform:uppercase;}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+.bigtoast{position:absolute;top:34%;left:50%;transform:translate(-50%,0) scale(.9);text-align:center;opacity:0;
+  transition:.4s cubic-bezier(.2,1.4,.4,1);pointer-events:none;}
+.bigtoast.show{opacity:1;transform:translate(-50%,0) scale(1);}
+.bigtoast .l1{font-family:'Oswald';font-size:64px;font-weight:700;color:#fff;text-shadow:0 4px 0 var(--lime-d),0 8px 24px rgba(0,0,0,.5);letter-spacing:.04em;}
+.bigtoast .l2{font-family:'Share Tech Mono';font-size:15px;color:var(--gold);letter-spacing:.3em;text-transform:uppercase;}
+.hitflash{position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,40,40,.5));
+  opacity:0;pointer-events:none;z-index:6;transition:opacity .12s;}
+.hitmark{position:absolute;top:50%;left:50%;width:20px;height:20px;transform:translate(-50%,-50%) rotate(45deg);opacity:0;}
+.hitmark:before,.hitmark:after{content:'';position:absolute;background:#fff;box-shadow:0 0 4px rgba(0,0,0,.7);}
+.hitmark:before{left:50%;width:3px;height:100%;transform:translateX(-50%);}
+.hitmark:after{top:50%;height:3px;width:100%;transform:translateY(-50%);}
+.dmgvig{position:fixed;inset:0;pointer-events:none;z-index:4;box-shadow:inset 0 0 120px rgba(255,40,40,0);transition:box-shadow .25s;}
+
+/* inventory */
+#inv .panel{width:min(700px,94vw);}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
+.slot{aspect-ratio:1;border-radius:14px;background:rgba(14,31,23,.05);border:2px solid var(--line);position:relative;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.12s;}
+.slot:hover{border-color:var(--lime-d);transform:translateY(-2px);}
+.slot.equipped{border-color:var(--gold);background:rgba(255,210,63,.16);box-shadow:0 0 0 3px rgba(255,210,63,.25);}
+.slot .ico{font-size:30px;}
+.slot .qty{position:absolute;bottom:4px;right:7px;font-family:'Share Tech Mono';font-size:12px;color:var(--lime-d);font-weight:700;}
+.slot .nm{position:absolute;top:5px;left:7px;font-family:'Share Tech Mono';font-size:8px;color:var(--muted);letter-spacing:.06em;}
+.inv-hint{font-family:'Share Tech Mono';font-size:12px;color:var(--muted);letter-spacing:.06em;text-align:center;}
+
+/* pause/over center cards */
+.centercard{text-align:center;}
+.bignum{font-family:'Oswald';font-size:72px;font-weight:700;color:var(--lime-d);line-height:1;}
+
+/* shop */
+.shopcash{margin-left:auto;font-family:'Share Tech Mono';font-size:13px;letter-spacing:.16em;color:var(--muted);}
+.shopcash b{color:var(--lime);font-size:18px;margin-left:6px;}
+.shopgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.shopcard{background:rgba(14,31,23,.05);border:2px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;
+  cursor:pointer;transition:.12s;}
+.shopcard:hover{border-color:var(--lime-d);transform:translateY(-3px);box-shadow:0 8px 18px rgba(14,31,23,.18);}
+.shopcard.disabled{opacity:.42;cursor:not-allowed;}
+.shopcard.disabled:hover{transform:none;border-color:var(--line);box-shadow:none;}
+.shopcard .si{font-size:30px;}
+.shopcard .sn{font-family:'Oswald';font-weight:600;font-size:14px;letter-spacing:.04em;margin-top:4px;color:var(--ink);text-transform:uppercase;}
+.shopcard .sd{font-size:11px;color:var(--muted);min-height:28px;margin:4px 0;line-height:1.3;}
+.shopcard .sp{font-family:'Share Tech Mono';font-weight:700;color:var(--lime-d);font-size:16px;}
+/* map */
+.maplegend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:14px;
+  font-family:'Share Tech Mono';font-size:11px;color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase;}
+.maplegend span{display:flex;align-items:center;gap:6px;}
+.maplegend i{width:11px;height:11px;border-radius:50%;display:inline-block;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+/* customize */
+.custrow{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 0;border-bottom:1px solid var(--line);}
+.custrow:last-of-type{border-bottom:0;}
+.custrow > label{font-size:14px;letter-spacing:.04em;font-weight:600;color:var(--ink-2);text-transform:uppercase;}
+.tint-pick{display:flex;gap:10px;}
+.tint-chip{width:34px;height:34px;border-radius:9px;border:3px solid rgba(255,255,255,.6);cursor:pointer;transition:.12s;}
+.tint-chip:hover{transform:translateY(-2px);}
+.tint-chip.sel{border-color:#fff;transform:translateY(-2px) scale(1.08);box-shadow:0 6px 14px rgba(14,31,23,.3);}
+/* contracts */
+.contractgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+.contractcard{background:rgba(14,31,23,.05);border:2px solid var(--line);border-radius:14px;padding:16px 13px;cursor:pointer;transition:.12s;}
+.contractcard:hover{border-color:var(--lime-d);transform:translateY(-3px);box-shadow:0 8px 18px rgba(14,31,23,.18);}
+.contractcard.active{border-color:var(--gold);background:rgba(255,210,63,.12);cursor:default;}
+.contractcard.active:hover{transform:none;}
+.contractcard .ct{font-family:'Share Tech Mono';font-size:10px;letter-spacing:.2em;color:var(--muted);}
+.contractcard .cdesc{font-family:'Oswald';font-size:17px;font-weight:600;color:var(--ink);margin:6px 0;line-height:1.15;}
+.contractcard .cprog{font-family:'Share Tech Mono';font-size:14px;color:var(--lime-d);}
+.contractcard .creward{font-family:'Oswald';font-weight:700;color:var(--lime-d);font-size:18px;margin-top:4px;}
+.contractcard .caccept{font-family:'Share Tech Mono';font-size:11px;letter-spacing:.18em;color:var(--orange);margin-top:8px;}
+/* leaderboard */
+.lbrow{display:flex;align-items:center;gap:12px;padding:8px 6px;border-bottom:1px solid var(--line);font-family:'Share Tech Mono';font-size:13px;}
+.lbrow:last-child{border-bottom:0;}
+.lbrow .lbrank{width:26px;text-align:center;color:var(--muted);font-weight:700;}
+.lbrow.top .lbrank{color:var(--gold);font-size:15px;}
+.lbrow .lbname{flex:1;font-family:'Oswald';font-weight:600;font-size:15px;color:var(--ink);letter-spacing:.02em;}
+.lbrow .lbval{color:var(--lime-d);font-weight:700;}
+#lbSource{font-size:12px;letter-spacing:.12em;color:var(--muted);}
+/* PvP: scoreboard, kill feed, peer nametags, respawn banner */
+#pvpBoard{position:absolute;top:58px;left:50%;transform:translateX(-50%);display:none;min-width:210px;
+  background:rgba(8,18,12,.66);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:8px 12px;
+  font-family:'Share Tech Mono';color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);}
+#pvpBoard .sbteam{font-family:'Oswald';font-weight:700;letter-spacing:.08em;font-size:13px;text-align:center;margin-bottom:6px;color:var(--gold);}
+#pvpBoard .sbrow{display:flex;justify-content:space-between;gap:18px;font-size:12px;padding:1px 0;}
+#pvpBoard .sbrow.me{font-weight:700;background:rgba(255,255,255,.08);border-radius:4px;padding:1px 4px;}
+#pvpBoard .sbs{color:var(--gold);}
+#killfeed{position:absolute;top:232px;right:24px;display:flex;flex-direction:column;gap:3px;align-items:flex-end;pointer-events:none;}
+.kfline{font-family:'Share Tech Mono';font-size:12px;background:rgba(8,18,12,.6);border-radius:6px;padding:3px 9px;color:#fff;text-shadow:0 1px 2px #000;transition:opacity .4s;}
+.kfline .kfk{color:var(--lime);font-weight:700;} .kfline .kfv{color:var(--coral);} .kfline .kfw{opacity:.6;}
+.ptag{position:absolute;transform:translate(-50%,-100%);text-align:center;pointer-events:none;}
+.ptag .pnm{display:block;font-family:'Oswald';font-weight:700;font-size:12px;color:var(--gold);text-shadow:0 1px 3px #000;white-space:nowrap;}
+.ptag .phb{display:block;width:46px;height:5px;margin:2px auto 0;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);border-radius:3px;overflow:hidden;}
+.ptag .phb>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff3b3b,#ff8a3d);}
+.respawnbanner{position:absolute;top:42%;left:50%;transform:translate(-50%,-10px);text-align:center;opacity:0;pointer-events:none;transition:.3s;z-index:6;}
+.respawnbanner.show{opacity:1;transform:translate(-50%,0);}
+.respawnbanner .rl1{font-family:'Oswald';font-weight:700;font-size:48px;color:var(--coral);text-shadow:0 3px 0 #7a1a1a,0 6px 18px rgba(0,0,0,.5);letter-spacing:.04em;}
+.respawnbanner .rl2{font-family:'Share Tech Mono';font-size:14px;color:#fff;letter-spacing:.2em;}
+/* level + xp HUD badge */
+.levelbox{display:flex;align-items:center;gap:7px;}
+.levelbox .lvl{font-family:'Oswald';font-weight:700;font-size:13px;letter-spacing:.12em;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.7);}
+.levelbox .lvl b{color:var(--gold);font-size:16px;}
+.levelbox .xptrack{width:96px;height:7px;background:rgba(0,0,0,.45);border:1.5px solid rgba(255,255,255,.2);border-radius:6px;overflow:hidden;}
+.levelbox .xptrack>i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#86e04a,#ffd23f);transition:width .25s;}
+.levelbox .skilldot{display:none;width:11px;height:11px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:starpop .6s ease infinite alternate;}
+/* achievement popup */
+.achpop{position:absolute;top:96px;left:50%;transform:translate(-50%,-16px);background:rgba(14,31,23,.9);
+  border:1.5px solid var(--gold);border-radius:12px;padding:9px 22px;text-align:center;opacity:0;pointer-events:none;
+  transition:.4s cubic-bezier(.2,1.4,.4,1);box-shadow:0 10px 30px rgba(0,0,0,.5);}
+.achpop.show{opacity:1;transform:translate(-50%,0);}
+.achpop .al{font-family:'Share Tech Mono';font-size:10px;letter-spacing:.28em;color:var(--gold);}
+.achpop .an{font-family:'Oswald';font-weight:700;font-size:19px;color:#fff;letter-spacing:.04em;}
+.achpop .ad{font-family:'Share Tech Mono';font-size:11px;color:rgba(255,255,255,.7);}
+/* perk grid */
+.perkgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px;}
+.perkcard{background:rgba(14,31,23,.05);border:2px solid var(--line);border-radius:14px;padding:13px 13px;cursor:pointer;transition:.12s;}
+.perkcard:hover:not(.locked){border-color:var(--lime-d);transform:translateY(-2px);box-shadow:0 8px 18px rgba(14,31,23,.16);}
+.perkcard.locked{cursor:default;opacity:.7;}
+.perkcard.maxed{border-color:var(--gold);background:rgba(255,210,63,.12);}
+.perkcard .ptop{display:flex;align-items:center;gap:8px;}
+.perkcard .pico{font-size:20px;}
+.perkcard .pname{font-family:'Oswald';font-weight:700;font-size:15px;color:var(--ink);text-transform:uppercase;letter-spacing:.02em;}
+.perkcard .pdesc{font-size:12px;color:var(--muted);margin:6px 0 9px;line-height:1.3;min-height:30px;}
+.perkcard .pdots{display:flex;gap:5px;margin-bottom:8px;}
+.perkcard .pdot{width:14px;height:8px;border-radius:3px;background:rgba(14,31,23,.14);}
+.perkcard .pdot.on{background:linear-gradient(90deg,var(--lime),var(--lime-d));}
+.perkcard .pbuy{font-family:'Share Tech Mono';font-size:12px;font-weight:700;color:var(--lime-d);letter-spacing:.06em;}
+.perkcard.maxed .pbuy{color:var(--gold);} .perkcard.locked .pbuy{color:var(--muted);}
+/* achievement grid */
+.achgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.achcard{background:rgba(14,31,23,.05);border:2px solid var(--line);border-radius:12px;padding:11px 9px;text-align:center;opacity:.55;}
+.achcard.got{opacity:1;border-color:var(--gold);background:rgba(255,210,63,.12);}
+.achcard .atrophy{font-size:24px;}
+.achcard .aname{font-family:'Oswald';font-weight:700;font-size:12px;color:var(--ink);text-transform:uppercase;margin-top:2px;}
+.achcard .adesc{font-size:10px;color:var(--muted);line-height:1.25;margin-top:2px;}
+/* missions */
+.missiongrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+.missioncard{background:rgba(14,31,23,.05);border:2px solid var(--line);border-radius:14px;padding:14px 13px;}
+.missioncard.done{border-color:var(--lime-d);background:rgba(134,224,74,.14);}
+.missioncard .mtop{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.missioncard .mname{font-family:'Oswald';font-weight:700;font-size:15px;color:var(--ink);text-transform:uppercase;letter-spacing:.02em;}
+.missioncard .mtick{color:var(--lime-d);font-weight:800;font-size:16px;}
+.missioncard .mdesc{font-size:12px;color:var(--muted);margin:5px 0 9px;line-height:1.3;min-height:30px;}
+.missioncard .mbar{height:7px;background:rgba(14,31,23,.12);border-radius:6px;overflow:hidden;}
+.missioncard .mbar>i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--lime),var(--lime-d));}
+.missioncard .mfoot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-family:'Share Tech Mono';font-size:11px;}
+.missioncard .mprog{color:var(--ink-2);} .missioncard .mreward{color:var(--lime-d);font-weight:700;text-align:right;}
+/* contract HUD tracker */
+.contracthud{position:absolute;top:120px;left:26px;background:rgba(14,31,23,.62);border-left:3px solid var(--gold);
+  border-radius:0 8px 8px 0;padding:7px 13px;color:#fff;display:none;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+.contracthud .cl{font-family:'Share Tech Mono';font-size:10px;letter-spacing:.22em;color:var(--gold);}
+.contracthud .chd{font-family:'Oswald';font-size:15px;font-weight:500;}
+.contracthud .chp{font-family:'Share Tech Mono';font-size:12px;color:var(--lime);}
+/* garage prompt */
+.garageprompt{position:absolute;bottom:160px;left:50%;transform:translateX(-50%);display:none;
+  background:rgba(14,31,23,.78);border:1.5px solid rgba(255,210,63,.5);border-radius:10px;padding:8px 18px;
+  font-family:'Oswald';font-size:16px;letter-spacing:.06em;color:#fff;}
+.garageprompt b{color:var(--gold);}
+
+/* floating damage numbers */
+.floaters{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.dmgnum{position:absolute;transform:translate(-50%,-50%);font-family:'Oswald';font-weight:700;font-size:22px;
+  color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.75);transition:transform .76s ease-out, opacity .76s ease-out;white-space:nowrap;}
+.dmgnum.crit{color:var(--gold);font-size:31px;text-shadow:0 2px 8px rgba(0,0,0,.8);}
+.cashpop{position:absolute;transform:translate(-50%,-50%);font-family:'Oswald';font-weight:700;font-size:20px;
+  color:var(--lime);text-shadow:0 2px 6px rgba(0,0,0,.85);transition:transform .8s ease-out, opacity .8s ease-out;white-space:nowrap;}
+/* enemy health bars */
+.ehp{position:absolute;transform:translate(-50%,-50%);width:46px;height:6px;border-radius:4px;
+  background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.32);box-shadow:0 1px 3px rgba(0,0,0,.5);overflow:hidden;}
+.ehp>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff3b3b,#ff8a3d);transition:width .12s;}
+/* menu stats line */
+#menuStats{display:none;margin-top:20px;font-family:'Share Tech Mono';font-size:12px;letter-spacing:.14em;
+  color:rgba(14,31,23,.6);text-transform:uppercase;}
+/* live chat */
+#chatPanel{position:absolute;left:24px;bottom:120px;width:344px;max-width:44vw;z-index:5;pointer-events:none;}
+#chatLog{display:flex;flex-direction:column;gap:2px;max-height:170px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 26%);mask-image:linear-gradient(180deg,transparent,#000 26%);}
+.chatline{font-family:'Share Tech Mono';font-size:12px;line-height:1.36;color:#eef5ee;
+  text-shadow:0 1px 3px rgba(0,0,0,.9);word-break:break-word;}
+.chatline .who{font-weight:700;}
+.chatline .tag{font-size:9px;letter-spacing:.1em;opacity:.7;margin-right:3px;}
+.chatline.system{color:#9fb3a6;font-style:italic;}
+.chat-g .who{color:#4fd2e6;} .chat-room .who{color:#ffd23f;} .chat-group .who{color:#86e04a;} .chat-local .who{color:#fff;}
+#chatBar{display:none;margin-top:6px;gap:6px;align-items:center;pointer-events:auto;
+  background:rgba(8,18,12,.74);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:6px 8px;
+  box-shadow:0 6px 18px rgba(0,0,0,.4);}
+#chatBar.show{display:flex;}
+#chatChanBtn{font-family:'Oswald';font-size:11px;letter-spacing:.1em;font-weight:700;color:#08160e;border:0;border-radius:7px;
+  padding:6px 9px;cursor:pointer;background:var(--gold);white-space:nowrap;}
+#chatInput{flex:1;min-width:0;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);border-radius:7px;
+  color:#fff;font-family:'Share Tech Mono';font-size:13px;padding:6px 9px;outline:none;}
+#chatHint{margin-top:5px;font-family:'Share Tech Mono';font-size:10px;letter-spacing:.08em;
+  color:rgba(255,255,255,.55);text-shadow:0 1px 2px rgba(0,0,0,.8);}
+#chatHint b{color:var(--gold);}
+/* kill combo */
+.combo{position:absolute;top:30%;right:7%;text-align:right;opacity:0;transition:opacity .2s;}
+.combo .cm{font-family:'Oswald';font-weight:700;font-size:50px;color:var(--gold);line-height:.9;
+  text-shadow:0 3px 0 #c77f00, 0 7px 16px rgba(0,0,0,.5);}
+.combo .cc{font-family:'Share Tech Mono';font-size:12px;color:#fff;letter-spacing:.18em;text-shadow:0 1px 4px rgba(0,0,0,.7);}
+/* boss bar */
+.bossbar{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:min(540px,58vw);display:none;text-align:center;}
+.bossbar.show{display:block;}
+/* wanted stars */
+.wanted{display:flex;gap:3px;opacity:0;transition:opacity .25s;margin-bottom:4px;}
+.wanted .star{font-size:22px;color:rgba(255,255,255,.22);text-shadow:0 2px 4px rgba(0,0,0,.6);line-height:1;}
+.wanted .star.on{color:var(--gold);text-shadow:0 0 10px rgba(255,210,63,.8),0 2px 4px rgba(0,0,0,.6);
+  animation:starpop .3s ease;}
+@keyframes starpop{0%{transform:scale(0.4);}70%{transform:scale(1.3);}100%{transform:scale(1);}}
+.bossbar .bn{font-family:'Oswald';font-weight:700;letter-spacing:.3em;color:#fff;font-size:16px;margin-bottom:5px;
+  text-transform:uppercase;text-shadow:0 2px 6px rgba(0,0,0,.7);}
+.bossbar .bt{height:15px;background:rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.55);border-radius:9px;overflow:hidden;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.bossbar .bt>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff2b2b,#ff8a3d);transition:width .2s;}
+/* sniper scope */
+.scope{position:fixed;inset:0;display:none;z-index:6;pointer-events:none;
+  background:radial-gradient(circle at center, transparent 0 21%, rgba(0,0,0,.55) 21% 23%, rgba(0,0,0,.96) 24% 100%);}
+.scope:before,.scope:after{content:'';position:absolute;background:rgba(20,40,20,.8);}
+.scope:before{left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);}
+.scope:after{top:50%;left:0;right:0;height:2px;transform:translateY(-50%);}
+</style>
+</head>
+<body>
+<canvas id="renderCanvas"></canvas>
+
+<!-- ===== LOADING + STUDIO SPLASH ===== -->
+<div id="loader" class="layer center show skybg">
+  <div class="studio">
+    <div class="studio-mark">
+      <svg viewBox="0 0 128 128">
+        <g class="ring"><circle cx="64" cy="64" r="54" fill="none" stroke="#2f7d2a" stroke-width="2" stroke-dasharray="7 12" opacity=".6"/></g>
+        <g class="ring2"><circle cx="64" cy="64" r="43" fill="none" stroke="#ff9f3e" stroke-width="2" stroke-dasharray="3 16" opacity=".8"/></g>
+        <polygon points="64,30 92,80 36,80" fill="#86e04a" stroke="#2f7d2a" stroke-width="2.5"/>
+        <polygon points="64,48 78,76 50,76" fill="#ffd23f"/>
+        <circle cx="64" cy="68" r="5" fill="#0e1f17"/>
+      </svg>
+    </div>
+    <div style="text-align:center">
+      <div class="powered">Powered by</div>
+      <div class="studio-name">Heleo<b>2</b> Studio</div>
+    </div>
+    <div class="bar"><i id="loadFill"></i></div>
+    <div id="loadPct">0%</div>
+    <div id="loadTask">INITIALIZING ENGINE</div>
+  </div>
+</div>
+
+<!-- ===== MAIN MENU ===== -->
+<div id="menu" class="layer center skybg" data-screen-label="Main Menu">
+  <div class="wrap">
+    <div class="kicker">A Heleo2 Studio Production</div>
+    <div class="title">VERDANT</div>
+    <div class="subtitle">Low-Poly Open World // MVP Build 1.0</div>
+    <div class="menu-btns">
+      <button class="mbtn primary" data-act="play">Start Mission</button>
+      <button class="mbtn" data-act="settings">Settings</button>
+      <button class="mbtn" data-act="customize">Customize</button>
+      <button class="mbtn" data-act="skills">Skills</button>
+      <button class="mbtn" data-act="missions">Missions</button>
+      <button class="mbtn" data-act="multiplayer">Multiplayer</button>
+      <button class="mbtn" data-act="leaderboard">Leaderboard</button>
+      <button class="mbtn" data-act="codes">Secret Codes</button>
+      <button class="mbtn" data-act="howto">How To Play</button>
+    </div>
+    <div class="char-pick" id="charPick"></div>
+    <div id="menuStats"></div>
+  </div>
+  <div class="footer-note">© Heleo2 Studio — Babylon.js WebGL Engine</div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div id="settings" class="layer center skybg" data-screen-label="Settings">
+  <div class="panel">
+    <h2>Settings</h2>
+    <div class="row"><label>Graphics Quality</label>
+      <div class="seg" id="segQuality">
+        <button data-q="low">LOW</button><button data-q="med" class="active">MED</button><button data-q="high">HIGH</button>
+      </div></div>
+    <div class="row"><label>Shadows</label>
+      <div class="seg" id="segShadow"><button data-s="off">OFF</button><button data-s="on" class="active">ON</button></div></div>
+    <div class="row"><label>Day / Night Cycle</label>
+      <div class="seg" id="segCycle"><button data-c="off">OFF</button><button data-c="on" class="active">ON</button></div></div>
+    <div class="row"><label>Enemy Health Bars</label>
+      <div class="seg" id="segHealth"><button data-h="off">OFF</button><button data-h="on" class="active">ON</button></div></div>
+    <div class="row"><label>Mouse Sensitivity</label>
+      <input type="range" id="sens" min="20" max="300" value="120"><span class="val" id="sensVal">1.20</span></div>
+    <div class="row"><label>Master Volume</label>
+      <input type="range" id="vol" min="0" max="100" value="55"><span class="val" id="volVal">55</span></div>
+    <div class="row"><label>Field Of View</label>
+      <input type="range" id="fov" min="55" max="100" value="74"><span class="val" id="fovVal">74</span></div>
+    <div class="row"><label>World Density</label>
+      <input type="range" id="density" min="40" max="240" value="140"><span class="val" id="densityVal">140</span></div>
+    <div class="row"><label>Difficulty</label>
+      <div class="seg" id="segDiff"><button data-d="easy">EASY</button><button data-d="normal" class="active">NORMAL</button><button data-d="hard">HARD</button></div></div>
+    <div class="row"><label>Render Distance</label>
+      <input type="range" id="rdist" min="20" max="100" value="55"><span class="val" id="rdistVal">55</span></div>
+    <div class="row"><label>Invert Look Y</label>
+      <div class="seg" id="segInvY"><button data-i="off" class="active">OFF</button><button data-i="on">ON</button></div></div>
+    <div class="row"><label>Auto-Sprint</label>
+      <div class="seg" id="segAuto"><button data-a="off" class="active">OFF</button><button data-a="on">ON</button></div></div>
+    <div class="row"><label>Weather</label>
+      <div class="seg" id="segWeather"><button data-w="clear">CLEAR</button><button data-w="rain">RAIN</button><button data-w="auto" class="active">AUTO</button></div></div>
+    <div class="panel-actions">
+      <button class="pbtn" id="setBack">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MULTIPLAYER ===== -->
+<div id="mp" class="layer center skybg" data-screen-label="Multiplayer">
+  <div class="panel">
+    <h2>Multiplayer</h2>
+    <p class="helptxt" style="margin-bottom:16px;">
+      <span class="net-dot" id="netDot"></span><span id="netStat">Offline — single player</span><br><br>
+      Join a <b style="color:var(--lime-d)">Room</b> (a world shard) and an optional <b style="color:var(--lime-d)">Group</b>
+      (private party). The bundled <b style="color:var(--lime-d)">server.js</b> (Node + ws) is a room-sharded relay with
+      live <b>Global / Room / Group / Local</b> chat — run <span class="mono">npm install &amp;&amp; node server.js</span>, then connect.
+    </p>
+    <div class="row"><label>Server URL</label>
+      <input type="text" id="mpUrl" value="ws://localhost:8080" class="pin"></div>
+    <div class="row"><label>Callsign</label>
+      <input type="text" id="mpName" value="Operator" class="pin"></div>
+    <div class="row"><label>Room</label>
+      <input type="text" id="mpRoom" value="lobby" class="pin" maxlength="32"></div>
+    <div class="row"><label>Group / Party</label>
+      <input type="text" id="mpGroup" value="" class="pin" maxlength="24" placeholder="optional code"></div>
+    <div class="row"><label>Mode</label>
+      <div class="seg" id="segMode"><button data-m="coop" class="active">CO-OP</button><button data-m="dm">DEATHMATCH</button><button data-m="tdm">TEAM</button></div></div>
+    <div class="panel-actions">
+      <button class="pbtn" id="mpConnect">Connect</button>
+      <button class="pbtn ghost" id="mpGroupGen">New Group</button>
+      <button class="pbtn ghost" id="mpBack">Back</button>
+    </div>
+    <p class="helptxt" style="margin-top:14px;font-size:12px;color:var(--muted);">
+      In-world: press <span class="kbd">↵</span> to chat, <span class="kbd">⇥</span> to switch channel.
+      One relay handles a room comfortably; for global million-scale, run many relays behind a
+      shared pub/sub bus (see <span class="mono">SCALING.md</span>).
+    </p>
+  </div>
+</div>
+
+<!-- ===== HOW TO ===== -->
+<div id="howto" class="layer center skybg" data-screen-label="How To Play">
+  <div class="panel">
+    <h2>How To Play</h2>
+    <p class="helptxt">
+      <span class="kbd">W A S D</span> Move &nbsp;·&nbsp; <span class="kbd">MOUSE</span> Aim (cursor = sights)<br>
+      <span class="kbd">L-CLICK</span> Fire (auto-locks to enemy) &nbsp;·&nbsp; <span class="kbd">R-CLICK</span> Aim &nbsp;·&nbsp; <span class="kbd">R</span> Reload<br>
+      <span class="kbd">SHIFT</span> Sprint &nbsp;·&nbsp; <span class="kbd">SPACE</span> Jump &nbsp;·&nbsp; <span class="kbd">C</span> Crouch &nbsp;·&nbsp; <span class="kbd">G</span> Grenade<br>
+      <span class="kbd">F</span> Enter / Exit Vehicle &nbsp;·&nbsp; <span class="kbd">L</span> Toggle Mouselook &nbsp;·&nbsp; <span class="kbd">1-6</span> Weapon<br>
+      <span class="kbd">E</span> Pick Up &nbsp;·&nbsp; <span class="kbd">TAB</span> Inventory &nbsp;·&nbsp; <span class="kbd">ESC</span> Pause<br>
+      <span class="kbd">M</span> World Map &nbsp;·&nbsp; <span class="kbd">B</span> Black Market &nbsp;·&nbsp; <span class="kbd">V</span> Garage &nbsp;·&nbsp; <span class="kbd">K</span> Contracts<br>
+      <span class="kbd">↵</span> Live Chat &nbsp;·&nbsp; <span class="kbd">⇥</span> Switch Channel (Global / Room / Group / Local)<br>
+      <span class="kbd">J</span> Mission Log &nbsp;·&nbsp; <span class="kbd">O</span> Skill Tree &nbsp;·&nbsp; <span class="kbd">P</span> Secret Codes &nbsp;·&nbsp; <span class="kbd">1-9</span> Weapons<br><br>
+      Aim with the mouse (cursor = your sights); push the cursor to a screen edge to turn. Grab cash drops, take contracts for bonus pay, and visit the 🅖 garage pad for a ride.
+      Explore the valley &amp; city, loot crates for ammo &amp; medkits, and survive escalating waves of hostiles — with a <b>boss every 5th wave</b>.<br><br>
+      Drive cars, hold the resupply pad to restock, and build kill streaks for a score multiplier. Harm civilians and your <b>wanted level</b> rises — police will hunt you until the heat cools off. Toggle weather (Clear/Rain/Auto) in Settings.
+    </p>
+    <div class="panel-actions"><button class="pbtn" id="howBack">Back</button></div>
+  </div>
+</div>
+
+<!-- ===== PAUSE ===== -->
+<div id="pause" class="layer center skybg" data-screen-label="Pause">
+  <div class="panel centercard">
+    <h2 style="justify-content:center;">Paused</h2>
+    <div class="panel-actions" style="flex-direction:column;">
+      <button class="pbtn" id="resume">Resume</button>
+      <button class="pbtn ghost" id="pauseSettings">Settings</button>
+      <button class="pbtn ghost" id="quit">Abandon Mission</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GAME OVER ===== -->
+<div id="over" class="layer center skybg" data-screen-label="Game Over">
+  <div class="panel centercard">
+    <h2 style="color:var(--danger);justify-content:center;">Mission Failed</h2>
+    <div class="mono" style="font-size:13px;letter-spacing:.2em;color:var(--muted);margin-bottom:6px;">FINAL SCORE</div>
+    <div class="bignum" style="color:var(--orange);" id="finalScore">0</div>
+    <div class="mono" style="font-size:13px;color:var(--lime-d);margin:8px 0 4px;" id="finalWave">REACHED WAVE 1</div>
+    <div class="mono" style="font-size:12px;letter-spacing:.18em;color:var(--gold);margin:0 0 20px;" id="bestLine">BEST 0</div>
+    <div class="panel-actions">
+      <button class="pbtn" id="retry">Retry</button>
+      <button class="pbtn ghost" id="overBoard">Leaderboard</button>
+      <button class="pbtn ghost" id="toMenu">Main Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CUSTOMIZE ===== -->
+<div id="customize" class="layer center skybg" data-screen-label="Customize">
+  <div class="panel" style="width:min(620px,94vw);">
+    <h2>Customize</h2>
+    <div class="custrow"><label>Operator</label><div class="char-pick" id="custChars" style="margin:0;"></div></div>
+    <div class="custrow"><label>Weapon Finish</label><div class="tint-pick" id="custTints"></div></div>
+    <div class="custrow"><label>Starting Weapon</label>
+      <div class="seg" id="custStart">
+        <button data-w="pistol" class="active">PISTOL</button><button data-w="rifle">RIFLE</button><button data-w="shotgun">SHOTGUN</button>
+      </div></div>
+    <div class="panel-actions"><button class="pbtn" id="custBack">Done</button></div>
+  </div>
+</div>
+
+<!-- ===== GARAGE ===== -->
+<div id="garage" class="layer center" style="background:rgba(8,18,12,.62);backdrop-filter:blur(4px);" data-screen-label="Garage">
+  <div class="panel" style="width:min(680px,94vw);">
+    <h2>Garage <span class="shopcash">CASH <b id="garageMoney">$250</b></span></h2>
+    <div class="shopgrid" id="garageGrid" style="grid-template-columns:repeat(4,1fr);"></div>
+    <div class="inv-hint">Spawns beside you · press <span class="kbd">F</span> to drive · <span class="kbd">V</span> to close</div>
+  </div>
+</div>
+
+<!-- ===== CONTRACTS ===== -->
+<div id="contracts" class="layer center" style="background:rgba(8,18,12,.62);backdrop-filter:blur(4px);" data-screen-label="Contracts">
+  <div class="panel" style="width:min(720px,94vw);">
+    <h2>Mission Board</h2>
+    <div class="contractgrid" id="contractGrid"></div>
+    <div class="inv-hint">Accept a contract for a cash reward · <span class="kbd">K</span> to close</div>
+  </div>
+</div>
+
+<!-- ===== LEADERBOARD ===== -->
+<div id="leaderboard" class="layer center" style="background:rgba(8,18,12,.7);backdrop-filter:blur(4px);" data-screen-label="Leaderboard">
+  <div class="panel" style="width:min(560px,94vw);">
+    <h2>Leaderboard <span class="shopcash" id="lbSource">💾 LOCAL</span></h2>
+    <div class="seg" id="lbTabs" style="margin-bottom:14px;">
+      <button data-b="survival" class="active">SURVIVAL</button><button data-b="dm">DEATHMATCH</button>
+    </div>
+    <div id="lbList" style="max-height:46vh;overflow-y:auto;"></div>
+    <div class="panel-actions"><button class="pbtn" id="lbClose">Close</button></div>
+  </div>
+</div>
+
+<!-- ===== SKILLS + ACHIEVEMENTS ===== -->
+<div id="skills" class="layer center" style="background:rgba(8,18,12,.66);backdrop-filter:blur(5px);" data-screen-label="Skills">
+  <div class="panel" style="width:min(840px,95vw);max-height:92vh;overflow-y:auto;">
+    <h2>Skill Tree <span class="shopcash">LVL <b id="skillLevel">1</b> &nbsp;·&nbsp; POINTS <b id="skillPoints">0</b></span></h2>
+    <div class="perkgrid" id="skillGrid"></div>
+    <h2 style="font-size:20px;margin-top:14px;">Achievements <span class="shopcash">EARNED <b id="achCount">0 / 0</b></span></h2>
+    <div class="achgrid" id="achGrid"></div>
+    <div class="inv-hint">XP comes from kills, waves &amp; missions · spend points on perks · <span class="kbd">O</span> to close</div>
+  </div>
+</div>
+
+<!-- ===== MISSIONS ===== -->
+<div id="missions" class="layer center" style="background:rgba(8,18,12,.62);backdrop-filter:blur(4px);" data-screen-label="Missions">
+  <div class="panel" style="width:min(780px,94vw);">
+    <h2>Mission Log <span class="shopcash">COMPLETE <b id="missionCount">0 / 0</b></span></h2>
+    <div class="missiongrid" id="missionGrid"></div>
+    <div class="inv-hint">Objectives track automatically across all runs · rewards pay out mid-mission · <span class="kbd">J</span> to close</div>
+  </div>
+</div>
+
+<!-- ===== SECRET CODES ===== -->
+<div id="codes" class="layer center" style="background:rgba(8,18,12,.72);backdrop-filter:blur(4px);" data-screen-label="Secret Codes">
+  <div class="panel" style="width:min(560px,94vw);">
+    <h2>Secret Codes</h2>
+    <div class="row" style="border:0;padding-bottom:4px;">
+      <input type="text" id="codeInput" class="pin" placeholder="ENTER CODE…" autocomplete="off" spellcheck="false"
+        style="text-transform:uppercase;letter-spacing:.12em;font-family:'Share Tech Mono';">
+    </div>
+    <div id="codeResult" class="mono" style="min-height:18px;font-size:13px;margin:2px 2px 6px;"></div>
+    <div id="codeStatus" class="mono" style="font-size:12px;color:var(--ink-2);margin:2px 2px;line-height:1.6;"></div>
+    <div id="codeHints" class="mono" style="font-size:11px;color:var(--muted);margin-top:12px;letter-spacing:.03em;line-height:1.6;"></div>
+    <div class="panel-actions">
+      <button class="pbtn" id="codeSubmit">Enter</button>
+      <button class="pbtn ghost" id="codeClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SHOP ===== -->
+<div id="shop" class="layer center" style="background:rgba(8,18,12,.62);backdrop-filter:blur(4px);" data-screen-label="Shop">
+  <div class="panel" style="width:min(760px,94vw);">
+    <h2>Black Market <span class="shopcash">CASH <b id="shopMoney">$250</b></span></h2>
+    <div class="shopgrid" id="shopGrid"></div>
+    <div class="inv-hint">Tap a card to buy · <span class="kbd">B</span> to close</div>
+  </div>
+</div>
+
+<!-- ===== MAP ===== -->
+<div id="map" class="layer center" style="background:rgba(8,18,12,.82);backdrop-filter:blur(3px);" data-screen-label="Map">
+  <div class="panel" style="width:auto;padding:22px;">
+    <h2>World Map <span style="font-family:'Share Tech Mono';font-size:12px;color:var(--muted);letter-spacing:.2em;margin-left:auto;">PRESS M TO CLOSE</span></h2>
+    <canvas id="worldmap" width="620" height="620" style="border-radius:12px;display:block;"></canvas>
+    <div class="maplegend">
+      <span><i style="background:#fff"></i>You</span>
+      <span><i style="background:#ff5a52"></i>Hostiles</span>
+      <span><i style="background:#3b6bff"></i>Police</span>
+      <span><i style="background:#ffd23f"></i>Loot</span>
+      <span><i style="background:#dfe6ee"></i>Cars</span>
+      <span><i style="background:#c89a5b"></i>Deer</span>
+      <span><i style="background:#3bd6a0"></i>Resupply</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== INVENTORY ===== -->
+<div id="inv" class="layer center" style="background:rgba(8,18,12,.55);backdrop-filter:blur(3px);" data-screen-label="Inventory">
+  <div class="panel">
+    <h2>Inventory</h2>
+    <div class="grid" id="invGrid"></div>
+    <div class="inv-hint">Click a weapon to equip · Click a medkit/ammo to use · <span class="kbd">TAB</span> to close</div>
+  </div>
+</div>
+
+<!-- ===== HUD ===== -->
+<div id="hud" data-screen-label="Gameplay HUD">
+  <div class="crosshair" id="crosshair"><i></i></div>
+  <div class="hitmark" id="hitmark"></div>
+
+  <div class="objective">
+    <div class="lab">Objective</div>
+    <div class="txt" id="objText">Survive the wave</div>
+    <div class="enemies">HOSTILES <b id="enemyCount">0</b></div>
+    <div class="net"><span class="net-dot" id="hudNet"></span><span id="hudNetTxt">SOLO</span></div>
+  </div>
+
+  <div class="topright">
+    <div class="wanted" id="wanted"></div>
+    <div class="levelbox">
+      <span class="lvl">LVL <b id="lvlNum">1</b></span>
+      <div class="xptrack"><i id="xpFill"></i></div>
+      <span class="skilldot" id="skillDot" title="Unspent skill point — press O"></span>
+    </div>
+    <div class="scoreboard">
+      <div class="wave" id="waveLbl">WAVE 01</div>
+      <div class="score" id="scoreLbl">0</div>
+      <div class="money" id="moneyLbl">$250</div>
+    </div>
+    <div class="mapwrap">
+      <div class="compass" id="compass">N</div>
+      <canvas id="minimap" width="180" height="180"></canvas>
+      <div class="clock" id="clock">12:00</div>
+    </div>
+  </div>
+
+  <div class="vitals">
+    <div class="vbar"><span class="ic" style="background:#ff5a52;">HP</span><div class="track"><i id="hpFill" style="width:100%"></i></div></div>
+    <div class="vbar"><span class="ic" style="background:#3fb0c9;">ST</span><div class="track"><i id="spFill" style="width:100%"></i></div></div>
+    <div class="vbar"><span class="ic" style="background:#7ec8ff;">AR</span><div class="track"><i id="arFill" style="width:0%"></i></div></div>
+  </div>
+
+  <div class="qslots" id="qslots"></div>
+
+  <div id="chatPanel">
+    <div id="chatLog"></div>
+    <div id="chatBar">
+      <button id="chatChanBtn">GLOBAL</button>
+      <input id="chatInput" maxlength="160" autocomplete="off" spellcheck="false" placeholder="Say something…">
+    </div>
+    <div id="chatHint">↵ Chat · ⇥ Channel</div>
+  </div>
+
+  <div class="wbox">
+    <div class="wname" id="wName">PISTOL</div>
+    <div class="ammo"><span class="big" id="ammoMag">12</span><span class="small" id="ammoRes"> / 48</span></div>
+    <div class="grenade" id="grenadeCount">✛ GRENADES 3</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="contracthud" id="contractHud"><div class="cl">CONTRACT</div><div class="chd">—</div><div class="chp">0 / 0</div></div>
+  <div class="garageprompt" id="garagePrompt">🅖 Press <b>V</b> for Garage</div>
+  <div class="bigtoast" id="bigtoast"><div class="l1" id="bigL1">WAVE 1</div><div class="l2" id="bigL2">5 hostiles inbound</div></div>
+  <div class="floaters" id="floaters"></div>
+  <div class="floaters" id="healthbars"></div>
+  <div class="combo" id="combo"><div class="cm">x2</div><div class="cc">2 KILL STREAK</div></div>
+  <div class="bossbar" id="bossbar"><div class="bn" id="bossName">THE WARLORD</div><div class="bt"><i id="bossFill"></i></div></div>
+  <div class="achpop" id="achPop"></div>
+  <div class="floaters" id="peerTags"></div>
+  <div id="pvpBoard"></div>
+  <div id="killfeed"></div>
+  <div class="respawnbanner" id="respawnBanner"><div class="rl1"></div><div class="rl2"></div></div>
+</div>
+<div class="hitflash" id="hitflash"></div>
+<div class="dmgvig" id="dmgvig"></div>
+<div class="scope" id="scope"></div>
+
+<script src="js/core.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/world.js"></script>
+<script src="js/props.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/net.js"></script>
+<script src="js/pvp.js"></script>
+<script src="js/coop.js"></script>
+<script src="js/leaderboard.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/vehicles.js"></script>
+<script src="js/city.js"></script>
+<script src="js/traffic.js"></script>
+<script src="js/wildlife.js"></script>
+<script src="js/weather.js"></script>
+<script src="js/wanted.js"></script>
+<script src="js/policecars.js"></script>
+<script src="js/economy.js"></script>
+<script src="js/map.js"></script>
+<script src="js/extras.js"></script>
+<script src="js/features.js"></script>
+<script src="js/progression.js"></script>
+<script src="js/rpg.js"></script>
+<script src="js/missions.js"></script>
+<script src="js/codes.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

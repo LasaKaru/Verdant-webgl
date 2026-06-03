@@ -1,0 +1,6 @@
+# dependencies
+node_modules/
+# runtime artifacts
+leaderboard.json
+test_lb.json
+*.log
