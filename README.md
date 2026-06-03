@@ -7,9 +7,9 @@ play solo; one command to host online.
 > Originally mocked up in Claude Design and implemented into a runnable game. The original
 > design bundle lives in [`project/`](project/) and the design conversation in [`chats/`](chats/).
 
-- **30 JS modules** (~4,300 LOC) · **Babylon.js** engine (CDN, no build step)
+- **31 JS modules** · **Babylon.js** engine (CDN, no build step)
 - **Node + ws** server: rooms, group/party, 4 chat channels, **PvP (DM/TDM)**, **server-authoritative co-op waves**, **persistent leaderboards**
-- **8 headless test suites · 97 passing assertions** covering all netcode + game logic
+- **10 headless test suites · 119 passing assertions** covering all netcode + game logic
 
 ---
 
@@ -63,7 +63,8 @@ Server environment overrides:
 | `G` | Grenade | | `Enter` | Chat (`Tab` = channel) |
 | `F` | Enter/exit vehicle | | `1`–`9` | Switch weapon |
 | `E` | Pick up | | `Tab` | Inventory |
-| `L` | Toggle mouselook | | `F2` | **Photo mode** (free-fly cam) |
+| `L` | Toggle mouselook | | `X` | **Bullet time** (slow-mo) |
+| | | | `F2` | **Photo mode** (free-fly cam) |
 
 All action keys are **remappable** in **Settings → Controls**.
 
@@ -173,7 +174,8 @@ Verdant-webgl/
   drivable cars + garage, day/night with stars & glowing windows, weather, deer/birds/pedestrians,
   hundreds of instanced low-poly props.
 - **Combat** — 9 weapons (pistol→RPG, plus 3 secret guns), grenades, aim-assist, headshots,
-  ranged/melee/brute enemies, **boss every 5th wave**, combo multiplier, floating damage numbers.
+  ranged/melee/brute enemies, **boss every 5th wave**, combo multiplier, floating damage numbers,
+  **gunsmithing attachments** (optics/barrels/mags/grips/lasers) and a **bullet-time** slow-mo ability.
 - **Progression** — XP + levels + a **skill tree** (6 perks), **12 achievements**, **missions**
   that unlock weapons, **secret codes**, **3 save slots**.
 - **GTA systems** — cash economy + Black Market, wanted level + police + roadblocks, contracts,
@@ -208,7 +210,9 @@ for t in test_*.mjs; do node "$t"; done
 | `test_logic.mjs` | weapon unlocks, missions, codes | 12 |
 | `test_saves.mjs` | save slots: snapshot/isolation/restore | 11 |
 | `test_keybinds.mjs` | rebind, persistence, reverse lookup | 14 |
-| **Total** | | **97** |
+| `test_gunsmith.mjs` | attachment stat math + persistence | 11 |
+| `test_bullettime.mjs` | slow-mo meter: drain/regen/activation | 11 |
+| **Total** | | **119** |
 
 Every JS module also passes `node --check`.
 

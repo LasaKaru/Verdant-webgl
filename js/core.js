@@ -58,6 +58,7 @@ const Game = {
   xp:null, level:1, skillPoints:0, perks:{}, maxHP:100, achievements:null, skillsOpen:false,
   pvpDead:false, lbOpen:false, lbTab:'survival', lbGlobal:null, coopEnemies:{},
   savesOpen:false, photo:false, photoYaw:0, photoPitch:0.3, keybindsOpen:false, rebinding:null,
+  attachments:null, gunsmithOpen:false, gunsmithSel:'pistol', bulletTime:{active:false, meter:1},
 };
 const DIFF={ easy:{spawn:0.7, dmg:0.55, cap:7}, normal:{spawn:1, dmg:1, cap:9}, hard:{spawn:1.4, dmg:1.7, cap:13} };
 function diff(){ return DIFF[Game.settings.difficulty]||DIFF.normal; }
@@ -68,7 +69,7 @@ const show = id => $(id).classList.add('show');
 const hide = id => $(id).classList.remove('show');
 function setState(s){
   Game.state = s;
-  ['loader','menu','settings','mp','howto','pause','over','inv','shop','map','garage','contracts','customize','missions','codes','skills','leaderboard','saves','keybinds'].forEach(hide);
+  ['loader','menu','settings','mp','howto','pause','over','inv','shop','map','garage','contracts','customize','missions','codes','skills','leaderboard','saves','keybinds','gunsmith'].forEach(hide);
   $('hud').classList.remove('show');
   if(s==='menu'){ show('menu'); if(typeof renderMenuStats==='function') renderMenuStats(); }
   else if(s==='settings') show('settings');

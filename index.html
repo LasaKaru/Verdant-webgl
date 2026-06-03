@@ -265,6 +265,30 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .contractcard .cprog{font-family:'Share Tech Mono';font-size:14px;color:var(--lime-d);}
 .contractcard .creward{font-family:'Oswald';font-weight:700;color:var(--lime-d);font-size:18px;margin-top:4px;}
 .contractcard .caccept{font-family:'Share Tech Mono';font-size:11px;letter-spacing:.18em;color:var(--orange);margin-top:8px;}
+/* bullet time */
+#btFill{background:linear-gradient(90deg,#7b4cff,#c89bff);}
+#btOverlay{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .25s;
+  background:radial-gradient(ellipse at center, transparent 38%, rgba(60,40,120,.4));}
+body.bullettime #btOverlay{opacity:1;}
+/* gunsmith */
+.guntabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;}
+.guntab{width:46px;height:46px;border-radius:11px;border:2px solid var(--line);background:rgba(14,31,23,.05);
+  font-size:22px;cursor:pointer;transition:.12s;}
+.guntab:hover{transform:translateY(-2px);}
+.guntab.active{border-color:var(--gold);background:rgba(255,210,63,.18);box-shadow:0 0 12px rgba(255,210,63,.35);}
+.gscols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:12px;}
+.gsrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);}
+.gsrow .gslabel{font-size:13px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em;}
+.gsrow .gssel{flex:1;max-width:150px;background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:8px;
+  padding:6px 8px;font-family:'Outfit';font-size:13px;color:var(--ink);cursor:pointer;}
+.gsstats{display:flex;flex-direction:column;gap:9px;justify-content:center;}
+.gstat{display:flex;align-items:center;gap:9px;}
+.gstat .gsl{font-family:'Share Tech Mono';font-size:10px;color:var(--muted);width:74px;letter-spacing:.04em;}
+.gstat .gstrack{position:relative;flex:1;height:8px;background:rgba(14,31,23,.12);border-radius:5px;overflow:visible;}
+.gstat .gstrack>i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--lime),var(--lime-d));}
+.gstat .gstrack>b{position:absolute;top:-2px;width:2px;height:12px;background:rgba(14,31,23,.5);border-radius:2px;}
+.gstat .gsv{font-family:'Share Tech Mono';font-size:12px;font-weight:700;color:var(--ink-2);width:50px;text-align:right;}
+.gstat .gsv.up{color:var(--lime-d);} .gstat .gsv.down{color:var(--coral);}
 /* keybinds */
 .keybindgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:14px;}
 .kbrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line);}
@@ -481,6 +505,7 @@ body.photomode #photoHint{display:block;}
       <button class="mbtn primary" data-act="play">Start Mission</button>
       <button class="mbtn" data-act="settings">Settings</button>
       <button class="mbtn" data-act="customize">Customize</button>
+      <button class="mbtn" data-act="gunsmith">Gunsmith</button>
       <button class="mbtn" data-act="skills">Skills</button>
       <button class="mbtn" data-act="missions">Missions</button>
       <button class="mbtn" data-act="multiplayer">Multiplayer</button>
@@ -650,6 +675,20 @@ body.photomode #photoHint{display:block;}
   </div>
 </div>
 
+<!-- ===== GUNSMITH ===== -->
+<div id="gunsmith" class="layer center" style="background:rgba(8,18,12,.7);backdrop-filter:blur(4px);" data-screen-label="Gunsmith">
+  <div class="panel" style="width:min(680px,95vw);">
+    <h2>Gunsmith</h2>
+    <div class="guntabs" id="gunTabs"></div>
+    <div class="gscols">
+      <div class="gsslots" id="gunSlots"></div>
+      <div class="gsstats" id="gunStats"></div>
+    </div>
+    <div class="inv-hint">Attachments change a weapon's stats and persist across runs. <span class="kbd">ESC</span> to close.</div>
+    <div class="panel-actions"><button class="pbtn" id="gunClose">Done</button></div>
+  </div>
+</div>
+
 <!-- ===== KEYBINDS / CONTROLS ===== -->
 <div id="keybinds" class="layer center" style="background:rgba(8,18,12,.7);backdrop-filter:blur(4px);" data-screen-label="Controls">
   <div class="panel" style="width:min(620px,94vw);max-height:90vh;overflow-y:auto;">
@@ -793,6 +832,7 @@ body.photomode #photoHint{display:block;}
     <div class="vbar"><span class="ic" style="background:#ff5a52;">HP</span><div class="track"><i id="hpFill" style="width:100%"></i></div></div>
     <div class="vbar"><span class="ic" style="background:#3fb0c9;">ST</span><div class="track"><i id="spFill" style="width:100%"></i></div></div>
     <div class="vbar"><span class="ic" style="background:#7ec8ff;">AR</span><div class="track"><i id="arFill" style="width:0%"></i></div></div>
+    <div class="vbar"><span class="ic" style="background:#9b6cff;">BT</span><div class="track"><i id="btFill" style="width:100%"></i></div></div>
   </div>
 
   <div class="qslots" id="qslots"></div>
@@ -831,6 +871,7 @@ body.photomode #photoHint{display:block;}
 <div class="hitflash" id="hitflash"></div>
 <div class="dmgvig" id="dmgvig"></div>
 <div class="scope" id="scope"></div>
+<div id="btOverlay"></div>
 
 <script src="js/core.js"></script>
 <script src="js/audio.js"></script>
@@ -845,6 +886,7 @@ body.photomode #photoHint{display:block;}
 <script src="js/leaderboard.js"></script>
 <script src="js/saves.js"></script>
 <script src="js/keybinds.js"></script>
+<script src="js/gunsmith.js"></script>
 <script src="js/chat.js"></script>
 <script src="js/vehicles.js"></script>
 <script src="js/city.js"></script>

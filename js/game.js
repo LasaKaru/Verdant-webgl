@@ -3,6 +3,25 @@
 
 const DAY_LENGTH = 150;   // seconds for a full 24h cycle
 
+/* ------------------------- bullet time (slow-mo ability) ------------------------- */
+const BT_DRAIN=1/3.0;    // empties in ~3s of use
+const BT_REGEN=1/14.0;   // refills in ~14s
+function activateBulletTime(){
+  const bt=Game.bulletTime;
+  if(bt.active){ bt.active=false; return; }
+  if(bt.meter<0.2){ toast('FOCUS NOT READY'); return; }
+  bt.active=true; sfx('reload'); toast('BULLET TIME');
+}
+// returns the timescale to apply to gameplay this frame
+function updateBulletTime(realDt){
+  const bt=Game.bulletTime;
+  if(bt.active){ bt.meter-=BT_DRAIN*realDt; if(bt.meter<=0){ bt.meter=0; bt.active=false; } }
+  else { bt.meter=Math.min(1, bt.meter+BT_REGEN*realDt); }
+  document.body.classList.toggle('bullettime', bt.active);
+  const el=$('btFill'); if(el) el.style.width=Math.round(bt.meter*100)+'%';
+  return bt.active?0.35:1;
+}
+
 /* ------------------------- photo mode (free-fly camera) ------------------------- */
 function togglePhoto(){
   Game.photo=!Game.photo;
@@ -86,6 +105,7 @@ async function boot(){
     if(typeof initRPG==='function') initRPG();
     Game.playerData={hp:Game.maxHP||100,stamina:100,armor:0};
     if(typeof applyUnlocks==='function') applyUnlocks();
+    if(typeof applyAllAttachments==='function') applyAllAttachments();
     if(typeof applyRenderDist==='function') applyRenderDist();
     renderInventory(); refreshHP(); refreshSP(); refreshArmor(); refreshAmmoHUD(); updateGrenadeHUD();
     updateMoneyHUD();
@@ -97,8 +117,9 @@ async function boot(){
   engine.runRenderLoop(()=>{
     const now=performance.now(); const dt=Math.min(0.05,(now-last)/1000); last=now;
     Game.camera.fov = Game.aiming ? Game.settings.fov*(currentW().zoom?0.45:0.8) : Game.settings.fov;
+    const ts=(Game.state==='playing'&&!Game.photo)?updateBulletTime(dt):1;
     if(Game.photo){ updatePhoto(dt); }
-    else if(Game.state==='playing'){ updateGame(dt,now); }
+    else if(Game.state==='playing'){ updateGame(dt*ts,now); }
     if(Game.settings.cycle && (Game.state==='playing'||Game.photo)) { Game.time=(Game.time+dt/DAY_LENGTH)%1; }
     updateSky();
     scene.render();
@@ -306,13 +327,15 @@ function resetGame(){
   clearWanted(); if(typeof setWeather==='function') setWeather('clear'); Game.weatherTimer=rand(20,40);
   Game.money=250; updateMoneyHUD(); if(Game.mapOpen) closeMap(); if(Game.shopOpen) closeShop();
   if(Game.garageOpen) closeGarage(); if(Game.contractsOpen) closeContracts();
-  if(Game.missionsOpen) closeMissions(); if(Game.codesOpen) closeCodes(); if(Game.skillsOpen) closeSkills();
+  if(Game.missionsOpen) closeMissions(); if(Game.codesOpen) closeCodes(); if(Game.skillsOpen) closeSkills(); if(Game.gunsmithOpen) closeGunsmith();
   clearMoneyDrops(); Game.contract=null; genContracts(); updateContractHUD();
   initCustom();
   if(Game.inVehicle){ Game.playerRig.root.setEnabled(true); Game.inVehicle=null; }
   Game.player.position.set(0,heightAt(0,0),0); Game.player.rotation.set(0,0,0); Game.vy=0;
   Game.weapons=defaultWeapons(); Game.currentWeapon=0; Game.grenadeCount=3;
   if(typeof applyUnlocks==='function') applyUnlocks();   // re-own code/mission unlocks
+  if(typeof applyAllAttachments==='function') applyAllAttachments();
+  Game.bulletTime={active:false, meter:1}; document.body.classList.remove('bullettime');
   Game.maxHP=(typeof perkMaxHP==='function')?perkMaxHP():100;
   Game.playerData={hp:Game.maxHP,stamina:100,armor:0};
   initInventory();
@@ -383,8 +406,9 @@ function bindInput(){
       else if(act==='skills'){ toggleSkills(); }
       else if(act==='codes'){ openCodes(); }
       else if(act==='look'){ toggleLook(); }
+      else if(act==='bullettime'){ activateBulletTime(); }
       else if(act==='inventory'){ e.preventDefault(); toggleInventory(); }
-      if(key==='escape'){ if(Game.mapOpen){ closeMap(); } else if(Game.shopOpen){ closeShop(); } else if(Game.garageOpen){ closeGarage(); } else if(Game.contractsOpen){ closeContracts(); } else if(Game.missionsOpen){ closeMissions(); } else if(Game.codesOpen){ closeCodes(); } else if(Game.skillsOpen){ closeSkills(); } else pauseGame(); }
+      if(key==='escape'){ if(Game.mapOpen){ closeMap(); } else if(Game.shopOpen){ closeShop(); } else if(Game.garageOpen){ closeGarage(); } else if(Game.contractsOpen){ closeContracts(); } else if(Game.missionsOpen){ closeMissions(); } else if(Game.codesOpen){ closeCodes(); } else if(Game.skillsOpen){ closeSkills(); } else if(Game.gunsmithOpen){ closeGunsmith(); } else pauseGame(); }
     } else if(Game.state==='paused'&&key==='escape') resumeGame();
     if(key===' '||key==='tab') e.preventDefault();
   });
@@ -428,7 +452,7 @@ function bindInput(){
   });
 }
 function overlayOpen(){
-  return Game.mapOpen||Game.shopOpen||Game.garageOpen||Game.contractsOpen||Game.missionsOpen||Game.codesOpen||Game.skillsOpen||$('inv').classList.contains('show');
+  return Game.mapOpen||Game.shopOpen||Game.garageOpen||Game.contractsOpen||Game.missionsOpen||Game.codesOpen||Game.skillsOpen||Game.gunsmithOpen||$('inv').classList.contains('show');
 }
 function moveCrosshair(x,y){
   const c=$('crosshair'); if(c){ c.style.left=x+'px'; c.style.top=y+'px'; }

@@ -142,6 +142,7 @@ function bindUI(){
     else if(a==='customize'){ buildCustomPanel(); setState('customize'); }
     else if(a==='missions'){ if(typeof initMissions==='function'&&!Game.missions) initMissions(); openMissions(); }
     else if(a==='skills'){ if(typeof initRPG==='function'&&Game.xp==null) initRPG(); openSkills(); }
+    else if(a==='gunsmith'){ openGunsmith(); }
     else if(a==='codes'){ openCodes(); }
     else if(a==='leaderboard'){ openLeaderboard(); }
     else if(a==='saves'){ openSaves(); }
@@ -200,6 +201,8 @@ function bindUI(){
   const kbl=$('keybinds'); if(kbl) kbl.addEventListener('click',e=>{ if(e.target.id==='keybinds') closeKeybinds(); });
   const lbc=$('lbClose'); if(lbc) lbc.onclick=closeLeaderboard;
   const svc=$('savesClose'); if(svc) svc.onclick=closeSaves;
+  const gsc=$('gunClose'); if(gsc) gsc.onclick=closeGunsmith;
+  const gsl=$('gunsmith'); if(gsl) gsl.addEventListener('click',e=>{ if(e.target.id==='gunsmith') closeGunsmith(); });
   const sk=$('skills'); if(sk) sk.addEventListener('click',e=>{ if(e.target.id==='skills') closeSkills(); });
   const lbl=$('leaderboard'); if(lbl) lbl.addEventListener('click',e=>{ if(e.target.id==='leaderboard') closeLeaderboard(); });
   const sv=$('saves'); if(sv) sv.addEventListener('click',e=>{ if(e.target.id==='saves') closeSaves(); });
