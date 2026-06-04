@@ -406,6 +406,7 @@ function bindInput(){
       else if(act==='skills'){ toggleSkills(); }
       else if(act==='codes'){ openCodes(); }
       else if(act==='look'){ toggleLook(); }
+      else if(act==='melee'){ meleeAttack(); }
       else if(act==='bullettime'){ activateBulletTime(); }
       else if(act==='inventory'){ e.preventDefault(); toggleInventory(); }
       if(key==='escape'){ if(Game.mapOpen){ closeMap(); } else if(Game.shopOpen){ closeShop(); } else if(Game.garageOpen){ closeGarage(); } else if(Game.contractsOpen){ closeContracts(); } else if(Game.missionsOpen){ closeMissions(); } else if(Game.codesOpen){ closeCodes(); } else if(Game.skillsOpen){ closeSkills(); } else if(Game.gunsmithOpen){ closeGunsmith(); } else pauseGame(); }

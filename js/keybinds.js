@@ -9,14 +9,14 @@
 const DEFAULT_BINDS={
   forward:'w', back:'s', left:'a', right:'d', sprint:'shift', jump:' ', interact:'e',
   reload:'r', grenade:'g', vehicle:'f', crouch:'c', map:'m', shop:'b', garage:'v',
-  contracts:'k', missions:'j', skills:'o', codes:'p', look:'l', inventory:'tab', bullettime:'x'
+  contracts:'k', missions:'j', skills:'o', codes:'p', look:'l', inventory:'tab', bullettime:'x', melee:'q'
 };
 const BIND_LABELS={
   forward:'Move Forward', back:'Move Back', left:'Strafe Left', right:'Strafe Right',
   sprint:'Sprint', jump:'Jump', interact:'Pick Up', reload:'Reload', grenade:'Throw Grenade',
   vehicle:'Enter / Exit Vehicle', crouch:'Crouch', map:'World Map', shop:'Black Market',
   garage:'Garage', contracts:'Contracts', missions:'Missions', skills:'Skill Tree',
-  codes:'Secret Codes', look:'Toggle Mouselook', inventory:'Inventory', bullettime:'Bullet Time'
+  codes:'Secret Codes', look:'Toggle Mouselook', inventory:'Inventory', bullettime:'Bullet Time', melee:'Melee / Takedown'
 };
 let _binds=null;
 function loadBinds(){ if(_binds) return _binds; let o={}; try{ o=JSON.parse(localStorage.getItem('verdant_keys'))||{}; }catch(e){}

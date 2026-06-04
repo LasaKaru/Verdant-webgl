@@ -9,7 +9,7 @@ play solo; one command to host online.
 
 - **31 JS modules** · **Babylon.js** engine (CDN, no build step)
 - **Node + ws** server: rooms, group/party, 4 chat channels, **PvP (DM/TDM)**, **server-authoritative co-op waves**, **persistent leaderboards**
-- **10 headless test suites · 119 passing assertions** covering all netcode + game logic
+- **11 headless test suites · 127 passing assertions** covering all netcode + game logic
 
 ---
 
@@ -64,7 +64,7 @@ Server environment overrides:
 | `F` | Enter/exit vehicle | | `1`–`9` | Switch weapon |
 | `E` | Pick up | | `Tab` | Inventory |
 | `L` | Toggle mouselook | | `X` | **Bullet time** (slow-mo) |
-| | | | `F2` | **Photo mode** (free-fly cam) |
+| `Q` | **Melee / takedown** (crouch = silent) | | `F2` | **Photo mode** (free-fly cam) |
 
 All action keys are **remappable** in **Settings → Controls**.
 
@@ -175,7 +175,8 @@ Verdant-webgl/
   hundreds of instanced low-poly props.
 - **Combat** — 9 weapons (pistol→RPG, plus 3 secret guns), grenades, aim-assist, headshots,
   ranged/melee/brute enemies, **boss every 5th wave**, combo multiplier, floating damage numbers,
-  **gunsmithing attachments** (optics/barrels/mags/grips/lasers) and a **bullet-time** slow-mo ability.
+  **gunsmithing attachments** (optics/barrels/mags/grips/lasers), a **bullet-time** slow-mo ability,
+  and a **knife melee** with crouching **silent takedowns**.
 - **Progression** — XP + levels + a **skill tree** (6 perks), **12 achievements**, **missions**
   that unlock weapons, **secret codes**, **3 save slots**.
 - **GTA systems** — cash economy + Black Market, wanted level + police + roadblocks, contracts,
@@ -212,7 +213,8 @@ for t in test_*.mjs; do node "$t"; done
 | `test_keybinds.mjs` | rebind, persistence, reverse lookup | 14 |
 | `test_gunsmith.mjs` | attachment stat math + persistence | 11 |
 | `test_bullettime.mjs` | slow-mo meter: drain/regen/activation | 11 |
-| **Total** | | **119** |
+| `test_melee.mjs` | melee cone/reach/facing target selection | 8 |
+| **Total** | | **127** |
 
 Every JS module also passes `node --check`.
 
