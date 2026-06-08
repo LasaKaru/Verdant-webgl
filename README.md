@@ -9,7 +9,8 @@ play solo; one command to host online.
 
 - **31 JS modules** · **Babylon.js** engine (CDN, no build step)
 - **Node + ws** server: rooms, group/party, 4 chat channels, **PvP (DM/TDM)**, **server-authoritative co-op waves**, **persistent leaderboards**
-- **11 headless test suites · 127 passing assertions** covering all netcode + game logic
+- **12 test suites · 135 passing assertions** — incl. a **real headless-browser test** that boots
+  the game and verifies firing actually kills enemies
 
 ---
 
@@ -23,10 +24,18 @@ The game is plain HTML/JS using the Babylon.js CDN. Just serve the folder and op
 python3 -m http.server 8000
 #   or:  npx serve .
 ```
-Open **http://localhost:8000** → **Start Mission** → click the canvas to aim.
+Open **http://localhost:8000** → **Start Mission** → **left-click to fire** (auto-aims at the
+nearest enemy on screen).
 
-> Opening `index.html` via `file://` mostly works too, but a local server is recommended so the
-> module scripts and fonts load cleanly.
+> **Engine loading:** Babylon.js loads from a CDN with automatic fallbacks
+> (`cdn.babylonjs.com` → jsDelivr → a local copy). If both CDNs are blocked (offline / locked
+> network) and the game hangs on the loading screen, vendor the engine locally once:
+> ```bash
+> npm install              # dev deps include babylonjs
+> npm run vendor:babylon   # copies node_modules/babylonjs/babylon.js -> js/lib/babylon.js
+> ```
+> Then the local fallback serves it. Opening via `file://` works too, but a local server is
+> recommended so the scripts and fonts load cleanly.
 
 ### Play online (multiplayer + chat)
 ```bash
@@ -214,7 +223,12 @@ for t in test_*.mjs; do node "$t"; done
 | `test_gunsmith.mjs` | attachment stat math + persistence | 11 |
 | `test_bullettime.mjs` | slow-mo meter: drain/regen/activation | 11 |
 | `test_melee.mjs` | melee cone/reach/facing target selection | 8 |
-| **Total** | | **127** |
+| `test_browser.mjs` | **real headless Chrome**: boots, fires, **kills enemies** | 8 |
+| **Total** | | **135** |
+
+The browser suite (`npm run test:browser`) loads the actual game in headless Chrome with software
+WebGL and asserts a click consumes ammo, aim-assist locks on, and **the targeted enemy dies** —
+including an off-center auto-aim case. Requires the dev deps (`npm install`).
 
 Every JS module also passes `node --check`.
 

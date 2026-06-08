@@ -105,6 +105,9 @@ function screenTarget(maxRange){
   const vp=new BABYLON.Viewport(0,0,vw,vh);
   const mat=Game.scene.getTransformMatrix();
   let best=null, bestKind=null, bestPx=Math.max(200, vw*0.20), headshot=false, aimPt=null;
+  // fallback: the nearest on-screen hostile, regardless of cursor distance,
+  // so ANY click reliably kills something when enemies are visible & in range.
+  let fb=null, fbKind=null, fbDist=Infinity, fbPt=null;
   const consider=(list,kind)=>{
     for(const o of list){
       if(o.dead) continue;
@@ -114,6 +117,8 @@ function screenTarget(maxRange){
       if(distW>(maxRange||9999)) continue;
       const p=BABYLON.Vector3.Project(wp, BABYLON.Matrix.Identity(), mat, vp);
       if(p.z<0||p.z>1) continue;                       // behind camera
+      if(p.x<-vw*0.1||p.x>vw*1.1) continue;            // well off the sides
+      if(distW<fbDist){ fbDist=distW; fb=o; fbKind=kind; fbPt=wp; }
       const d=Math.hypot(p.x-ax,p.y-ay);
       if(d<bestPx){ bestPx=d; best=o; bestKind=kind; aimPt=wp;
         // head projects ~ a bit above; mark headshot if aim is in the upper band
@@ -124,7 +129,9 @@ function screenTarget(maxRange){
   };
   consider(Game.enemies,'enemy');
   consider(Game.police,'police');
-  return best?{target:best, kind:bestKind, headshot, aimPt}:null;
+  if(best) return {target:best, kind:bestKind, headshot, aimPt};
+  if(fb)   return {target:fb,   kind:fbKind, headshot:false, aimPt:fbPt};
+  return null;
 }
 
 function fireRay(w){

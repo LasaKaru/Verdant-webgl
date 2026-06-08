@@ -33,26 +33,36 @@ function buildHumanoid(scene, kit, scale, shadows, withGun){
     const m=BABYLON.MeshBuilder.CreateBox('p',{width:w,height:h,depth:d},scene);
     m.material=mat; m.parent=parent; m.position.set(x,y,z); m.isPickable=false; cast.push(m); return m;
   };
+  const bootM=bmat(scene,'bt',[0.12,0.12,0.14]);
   const torso=mk(0.78,0.95,0.46,shirtM,root,0,1.18,0);
+  mk(0.5,0.16,0.46,bmat(scene,'belt',[0.18,0.14,0.10]),root,0,0.78,0);   // belt
+  mk(0.24,0.20,0.24,skinM,root,0,1.58,0);                                // neck
   const head=mk(0.5,0.5,0.5,skinM,root,0,1.85,0);
   mk(0.54,0.18,0.54,hatM,head,0,0.28,0);                       // cap
+  mk(0.30,0.10,0.06,hatM,head,0,0.20,0.27);                    // cap brim
   // arms (shoulder pivots)
   const shoulderL=new BABYLON.TransformNode('shL',scene); shoulderL.parent=root; shoulderL.position.set(-0.5,1.5,0);
   const shoulderR=new BABYLON.TransformNode('shR',scene); shoulderR.parent=root; shoulderR.position.set(0.5,1.5,0);
   mk(0.22,0.8,0.22,shirtM,shoulderL,0,-0.4,0);
   mk(0.22,0.8,0.22,shirtM,shoulderR,0,-0.4,0);
+  mk(0.24,0.22,0.24,skinM,shoulderL,0,-0.84,0.06);             // left hand
+  mk(0.24,0.22,0.24,skinM,shoulderR,0,-0.84,0.06);             // right hand
   // legs (hip pivots)
   const hipL=new BABYLON.TransformNode('hpL',scene); hipL.parent=root; hipL.position.set(-0.2,0.72,0);
   const hipR=new BABYLON.TransformNode('hpR',scene); hipR.parent=root; hipR.position.set(0.2,0.72,0);
   mk(0.26,0.78,0.28,pantM,hipL,0,-0.4,0);
   mk(0.26,0.78,0.28,pantM,hipR,0,-0.4,0);
+  mk(0.30,0.18,0.40,bootM,hipL,0,-0.84,0.06);                  // left boot
+  mk(0.30,0.18,0.40,bootM,hipR,0,-0.84,0.06);                  // right boot
   let gun=null, flash=null;
   if(withGun){
-    gun=mk(0.16,0.16,0.7,bmat(scene,'gn',[0.1,0.1,0.12]),shoulderR,0.0,-0.55,0.45);
-    flash=BABYLON.MeshBuilder.CreatePlane('fl',{size:0.55},scene);
-    const fm=new BABYLON.StandardMaterial('fm',scene); fm.emissiveColor=new BABYLON.Color3(1,0.8,0.3);
+    gun=mk(0.18,0.20,0.95,bmat(scene,'gn',[0.09,0.09,0.11]),shoulderR,0.0,-0.62,0.55);  // longer, clearer rifle
+    mk(0.10,0.24,0.20,bmat(scene,'gngrip',[0.06,0.06,0.07]),gun,0,-0.18,-0.30);          // grip
+    mk(0.07,0.07,0.34,bmat(scene,'gnbarrel',[0.05,0.05,0.06]),gun,0,0.02,0.60);          // barrel
+    flash=BABYLON.MeshBuilder.CreatePlane('fl',{size:0.85},scene);
+    const fm=new BABYLON.StandardMaterial('fm',scene); fm.emissiveColor=new BABYLON.Color3(1,0.85,0.35);
     fm.disableLighting=true; fm.useAlphaFromDiffuseTexture=false; flash.material=fm;
-    flash.parent=shoulderR; flash.position.set(0.0,-0.55,0.85); flash.isVisible=false;
+    flash.parent=shoulderR; flash.position.set(0.0,-0.62,1.15); flash.isVisible=false;
     flash.billboardMode=BABYLON.Mesh.BILLBOARDMODE_ALL;
   }
   root.scaling.set(scale,scale,scale);

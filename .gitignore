@@ -11,3 +11,6 @@ test_lb.json
 # build artifact
 verdant-webgl.bundle
 *.bundle
+
+# vendored engine (offline fallback, fetched via npm)
+js/lib/babylon.js

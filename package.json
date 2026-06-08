@@ -1,12 +1,20 @@
 {
   "name": "verdant",
   "version": "1.0.0",
-  "description": "VERDANT — low-poly third-person open-world survival MVP (Babylon.js) by Heleo2 Studio",
+  "description": "VERDANT — low-poly third-person open-world survival game (Babylon.js) with a Node multiplayer server, by Heleo2 Studio",
   "private": true,
   "scripts": {
-    "server": "node server.js"
+    "server": "node server.js",
+    "serve": "python3 -m http.server 8000",
+    "test": "for t in test_server test_pvp test_coop test_leaderboard test_rpg test_logic test_saves test_keybinds test_gunsmith test_bullettime test_melee; do node $t.mjs || exit 1; done",
+    "test:browser": "node test_browser.mjs",
+    "vendor:babylon": "mkdir -p js/lib && cp node_modules/babylonjs/babylon.js js/lib/babylon.js"
   },
   "dependencies": {
     "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "babylonjs": "^9.11.0",
+    "puppeteer": "^25.1.0"
   }
 }
