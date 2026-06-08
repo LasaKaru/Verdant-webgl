@@ -57,7 +57,11 @@ function applyRenderDist(){
 
 /* ------------------------- Boot ------------------------- */
 async function boot(){
-  console.log('%cVERDANT — build v2 (fire-fix + auto-aim + engine fallback)','color:#86e04a;font-weight:bold;font-size:13px');
+  console.log('%cVERDANT — build v3 (fire-fix + auto-aim + engine fallback + file:// warn)','color:#86e04a;font-weight:bold;font-size:13px');
+  if(location.protocol==='file:'){
+    console.warn('VERDANT: running from file:// — run a local server (e.g. "npx serve" or "python -m http.server") for audio, mouse-look and multiplayer.');
+    const fw=$('fileWarn'); if(fw){ fw.classList.add('show'); const x=$('fileWarnX'); if(x) x.onclick=()=>fw.classList.remove('show'); }
+  }
   const canvas=$('renderCanvas');
   const engine=new BABYLON.Engine(canvas,true,{preserveDrawingBuffer:true,stencil:true});
   Game.engine=engine;

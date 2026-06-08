@@ -314,6 +314,13 @@ body.bullettime #btOverlay{opacity:1;}
 .savecard .svb.load{background:linear-gradient(180deg,var(--lime),var(--lime-d));color:#08160e;}
 .savecard .svb.del{background:rgba(255,77,77,.14);color:var(--danger);}
 .savecard .svb:hover{transform:translateY(-1px);}
+/* file:// warning banner */
+#fileWarn{display:none;position:fixed;top:0;left:0;right:0;z-index:90;background:#2a1408;color:#ffd9a8;
+  font-family:'Share Tech Mono';font-size:12px;line-height:1.5;padding:9px 16px;text-align:center;
+  border-bottom:2px solid var(--orange);box-shadow:0 4px 14px rgba(0,0,0,.4);}
+#fileWarn.show{display:block;}
+#fileWarn b{color:var(--orange);} #fileWarn .mono{color:#fff;background:rgba(255,255,255,.12);padding:1px 6px;border-radius:4px;}
+#fileWarnX{cursor:pointer;margin-left:12px;color:#fff;text-decoration:underline;white-space:nowrap;}
 /* fps + photo mode */
 #fpsHud{position:fixed;top:6px;left:10px;z-index:8;display:none;font-family:'Share Tech Mono';font-size:12px;
   color:#9be35a;text-shadow:0 1px 3px rgba(0,0,0,.8);letter-spacing:.06em;}
@@ -474,6 +481,7 @@ body.photomode #photoHint{display:block;}
 </head>
 <body>
 <canvas id="renderCanvas"></canvas>
+<div id="fileWarn">⚠ Opened as a <b>file://</b> page — audio, mouse-look &amp; multiplayer need a local server. Run <span class="mono">npx serve</span> or <span class="mono">python -m http.server</span> in this folder, then open <span class="mono">http://localhost:8000</span>. <span id="fileWarnX">✕ dismiss</span></div>
 
 <!-- ===== LOADING + STUDIO SPLASH ===== -->
 <div id="loader" class="layer center show skybg">
@@ -875,37 +883,37 @@ body.photomode #photoHint{display:block;}
 <div class="scope" id="scope"></div>
 <div id="btOverlay"></div>
 
-<script src="js/core.js?v=2"></script>
-<script src="js/audio.js?v=2"></script>
-<script src="js/world.js?v=2"></script>
-<script src="js/props.js?v=2"></script>
-<script src="js/entities.js?v=2"></script>
-<script src="js/weapons.js?v=2"></script>
-<script src="js/ui.js?v=2"></script>
-<script src="js/net.js?v=2"></script>
-<script src="js/pvp.js?v=2"></script>
-<script src="js/coop.js?v=2"></script>
-<script src="js/leaderboard.js?v=2"></script>
-<script src="js/saves.js?v=2"></script>
-<script src="js/keybinds.js?v=2"></script>
-<script src="js/gunsmith.js?v=2"></script>
-<script src="js/melee.js?v=2"></script>
-<script src="js/chat.js?v=2"></script>
-<script src="js/vehicles.js?v=2"></script>
-<script src="js/city.js?v=2"></script>
-<script src="js/traffic.js?v=2"></script>
-<script src="js/wildlife.js?v=2"></script>
-<script src="js/weather.js?v=2"></script>
-<script src="js/wanted.js?v=2"></script>
-<script src="js/policecars.js?v=2"></script>
-<script src="js/economy.js?v=2"></script>
-<script src="js/map.js?v=2"></script>
-<script src="js/extras.js?v=2"></script>
-<script src="js/features.js?v=2"></script>
-<script src="js/progression.js?v=2"></script>
-<script src="js/rpg.js?v=2"></script>
-<script src="js/missions.js?v=2"></script>
-<script src="js/codes.js?v=2"></script>
-<script src="js/game.js?v=2"></script>
+<script src="js/core.js?v=3"></script>
+<script src="js/audio.js?v=3"></script>
+<script src="js/world.js?v=3"></script>
+<script src="js/props.js?v=3"></script>
+<script src="js/entities.js?v=3"></script>
+<script src="js/weapons.js?v=3"></script>
+<script src="js/ui.js?v=3"></script>
+<script src="js/net.js?v=3"></script>
+<script src="js/pvp.js?v=3"></script>
+<script src="js/coop.js?v=3"></script>
+<script src="js/leaderboard.js?v=3"></script>
+<script src="js/saves.js?v=3"></script>
+<script src="js/keybinds.js?v=3"></script>
+<script src="js/gunsmith.js?v=3"></script>
+<script src="js/melee.js?v=3"></script>
+<script src="js/chat.js?v=3"></script>
+<script src="js/vehicles.js?v=3"></script>
+<script src="js/city.js?v=3"></script>
+<script src="js/traffic.js?v=3"></script>
+<script src="js/wildlife.js?v=3"></script>
+<script src="js/weather.js?v=3"></script>
+<script src="js/wanted.js?v=3"></script>
+<script src="js/policecars.js?v=3"></script>
+<script src="js/economy.js?v=3"></script>
+<script src="js/map.js?v=3"></script>
+<script src="js/extras.js?v=3"></script>
+<script src="js/features.js?v=3"></script>
+<script src="js/progression.js?v=3"></script>
+<script src="js/rpg.js?v=3"></script>
+<script src="js/missions.js?v=3"></script>
+<script src="js/codes.js?v=3"></script>
+<script src="js/game.js?v=3"></script>
 </body>
 </html>
