@@ -33,7 +33,7 @@ function onRoad(x,z){ for(const r of ROADS){ if(distToSeg(x,z,r.x1,r.z1,r.x2,r.z
 const Game = {
   state: 'loading',
   settings: { quality:'med', shadows:true, cycle:true, sens:1.2, volume:0.55, fov:74*Math.PI/180, density:140, weatherMode:'auto', healthbars:true,
-              difficulty:'normal', renderDist:0.55, invertY:false, autoSprint:false, fps:false },
+              difficulty:'normal', renderDist:0.55, invertY:false, autoSprint:false, fps:false, postfx:true, music:true },
   scene:null, engine:null, camera:null, sun:null, hemi:null, shadowGen:null,
   player:null, playerRoot:null, playerData:null, charIndex:0,
   enemies:[], items:[], projectiles:[], grenades:[], decals:[], houses:[], vehicles:[], villagers:[],

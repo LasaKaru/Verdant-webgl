@@ -57,7 +57,7 @@ function applyRenderDist(){
 
 /* ------------------------- Boot ------------------------- */
 async function boot(){
-  console.log('%cVERDANT — build v3 (fire-fix + auto-aim + engine fallback + file:// warn)','color:#86e04a;font-weight:bold;font-size:13px');
+  console.log('%cVERDANT — build v4 (post-FX + dynamic music + screen shake + hit-stop)','color:#86e04a;font-weight:bold;font-size:13px');
   if(location.protocol==='file:'){
     console.warn('VERDANT: running from file:// — run a local server (e.g. "npx serve" or "python -m http.server") for audio, mouse-look and multiplayer.');
     const fw=$('fileWarn'); if(fw){ fw.classList.add('show'); const x=$('fileWarnX'); if(x) x.onclick=()=>fw.classList.remove('show'); }
@@ -73,6 +73,7 @@ async function boot(){
   const cam=new BABYLON.UniversalCamera('cam',new BABYLON.Vector3(0,8,-12),scene);
   cam.fov=Game.settings.fov; cam.minZ=0.15; cam.maxZ=1000;
   scene.activeCamera=cam; Game.camera=cam;
+  if(typeof buildPostFX==='function') buildPostFX(scene,cam);
 
   const hemi=new BABYLON.HemisphericLight('hemi',new BABYLON.Vector3(0.2,1,0.1),scene);
   hemi.intensity=0.9; hemi.groundColor=new BABYLON.Color3(0.25,0.32,0.22); Game.hemi=hemi;
@@ -122,9 +123,11 @@ async function boot(){
   engine.runRenderLoop(()=>{
     const now=performance.now(); const dt=Math.min(0.05,(now-last)/1000); last=now;
     Game.camera.fov = Game.aiming ? Game.settings.fov*(currentW().zoom?0.45:0.8) : Game.settings.fov;
-    const ts=(Game.state==='playing'&&!Game.photo)?updateBulletTime(dt):1;
+    let ts=(Game.state==='playing'&&!Game.photo)?updateBulletTime(dt):1;
+    if(typeof hitStopActive==='function' && hitStopActive()) ts=0;   // punchy kill freeze
     if(Game.photo){ updatePhoto(dt); }
-    else if(Game.state==='playing'){ updateGame(dt*ts,now); }
+    else if(Game.state==='playing'){ updateGame(dt*ts,now); if(typeof updateShake==='function') updateShake(dt); }
+    if(typeof updateMusic==='function') updateMusic(dt);
     if(Game.settings.cycle && (Game.state==='playing'||Game.photo)) { Game.time=(Game.time+dt/DAY_LENGTH)%1; }
     updateSky();
     scene.render();
@@ -312,6 +315,7 @@ function toggleLook(){ Game.wantLock=!Game.wantLock;
   else { document.exitPointerLock&&document.exitPointerLock(); toast('CURSOR AIM ON'); } }
 function startMission(){
   initAudio(); if(Game.audio&&Game.audio.state==='suspended') Game.audio.resume(); startAmbient();
+  if(typeof startMusic==='function') startMusic();
   // rebuild player if char changed
   if(Game.playerRig && CHAR_VARIANTS[Game.charIndex]){
     Game.playerRig.root.dispose(false,true); buildPlayer(Game.scene);
@@ -377,6 +381,7 @@ function damagePlayer(d){
   let dmg=d*diff().dmg;
   if(Game.playerData.armor>0){ const ab=Math.min(Game.playerData.armor,dmg*0.6); Game.playerData.armor-=ab; dmg-=ab; refreshArmor(); }
   Game.playerData.hp-=dmg; refreshHP(); sfx('hurt');
+  if(typeof addShake==='function') addShake(0.5);
   $('hitflash').style.opacity='1'; setTimeout(()=>$('hitflash').style.opacity='0',120);
   $('dmgvig').style.boxShadow='inset 0 0 120px rgba(255,40,40,'+Math.min(0.6,(100-Game.playerData.hp)/130)+')';
   if(Game.playerData.hp<=0) gameOver();

@@ -14,3 +14,6 @@ verdant-webgl.bundle
 
 # vendored engine (offline fallback, fetched via npm)
 js/lib/babylon.js
+
+# local captures
+screenshot*.png

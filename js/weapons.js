@@ -42,8 +42,9 @@ function tryShoot(now){
 
   // muzzle flash
   const fl=Game.playerRig.flash; if(fl){ fl.isVisible=true; setTimeout(()=>fl.isVisible=false,50); }
-  // recoil kick on camera pitch
+  // recoil kick on camera pitch + a touch of screen shake
   Game.pitch=clamp(Game.pitch - w.spread*1.6, -0.25, 1.3);
+  if(typeof addShake==='function') addShake(w.pellets>1?0.35:0.14);
 
   if(w.rocket){ fireRocket(w); return; }
   for(let p=0;p<w.pellets;p++) fireRay(w);
@@ -83,6 +84,7 @@ function clearRockets(){ (Game.rockets||[]).forEach(r=>r.mesh.dispose()); Game.r
 /* shared AoE explosion — used by grenades and rockets */
 function explodeAt(pos,R,dmg){
   sfx('explode');
+  if(typeof addShake==='function') addShake(0.9);
   const fx=BABYLON.MeshBuilder.CreateSphere('boom',{diameter:1,segments:8},Game.scene);
   fx.position.copyFrom(pos);
   const fm=new BABYLON.StandardMaterial('boomm',Game.scene); fm.emissiveColor=new BABYLON.Color3(1,0.7,0.2); fm.disableLighting=true;

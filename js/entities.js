@@ -138,6 +138,7 @@ function damageEnemy(e,dmg,crit,forceKill){
 }
 function killEnemy(e){
   if(e.dead) return; e.dead=true;
+  if(typeof hitStop==='function') hitStop(e.boss?120:40);
   if(typeof removeHealthBar==='function') removeHealthBar(e);
   Game.killCount=(Game.killCount||0)+1;
   const base = e.boss?2500 : e.type==='brute'?300 : e.type==='shooter'?150 : 100;

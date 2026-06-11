@@ -177,10 +177,12 @@ function bindUI(){
   seg('segAuto','a',a=>{ Game.settings.autoSprint=(a==='on'); });
   seg('segMode','m',m=>{ Game.net.mode=m; });
   seg('segFps','f',f=>{ Game.settings.fps=(f==='on'); });
+  seg('segPostfx','p',p=>{ Game.settings.postfx=(p==='on'); if(typeof applyPostFX==='function') applyPostFX(); });
+  seg('segMusic','u',u=>{ Game.settings.music=(u==='on'); if(typeof setMusicVolume==='function') setMusicVolume(); });
 
   const sl=(id,fmt,set)=>{ const el=$(id); el.oninput=()=>{ const v=+el.value; set(v); $(id+'Val').textContent=fmt(v); }; };
   sl('sens', v=>(v/100).toFixed(2), v=>Game.settings.sens=v/100);
-  sl('vol',  v=>String(v),          v=>{ Game.settings.volume=v/100; setAmbientVolume(); });
+  sl('vol',  v=>String(v),          v=>{ Game.settings.volume=v/100; setAmbientVolume(); if(typeof setMusicVolume==='function') setMusicVolume(); });
   sl('fov',  v=>String(v),          v=>Game.settings.fov=v*Math.PI/180);
   sl('density', v=>String(v),       v=>Game.settings.density=v);
   sl('rdist',   v=>String(v),       v=>{ Game.settings.renderDist=v/100; if(typeof applyRenderDist==='function') applyRenderDist(); });
